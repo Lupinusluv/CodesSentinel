@@ -8,17 +8,82 @@
 
 ---
 
+## 当前实现进度（2026-05-24 更新）
+
+### 实际进度 vs 计划
+
+| 月份 | 计划内容 | 实际状态 |
+|------|---------|---------|
+| 第1个月（6月） | MVP + 流式输出 + 最简前端 | ✅ 已完成 |
+| 第2个月（7月） | Multi-Agent 并行 + RAG 管道 | ✅ 已完成 |
+| 第3个月（8月） | Git 平台集成 + 完整前端 Dashboard | ⚠️ 前端 100%，Git 集成 0% |
+| 第4个月（9月） | 评测指标 + 测试 + 优化 + 面试准备 | ⏳ 未开始 |
+
+> 现在是 5 月底，整体进度超前约 2 个月。
+
+### 代码量现状
+
+| 模块 | 当前行数 | 现实终点预估 |
+|------|---------|------------|
+| 后端 (app/) | 1,229 行 | ~2,800 行 |
+| 前端 (src/) | 912 行 | ~1,400 行 |
+| 测试 (tests/) | 242 行 | ~700 行 |
+| **合计** | **2,383 行** | **~4,900 行** |
+
+> 原规划 10,000 行不现实。4,900 行把所有功能做完比凑行数更有价值，面试考的是能讲清楚设计决策，不是数行数。
+
+### 已完整实现的模块
+
+**后端**
+- `agents/`：graph.py、state.py、prompts.py、security/performance/style/synthesis_agent.py、llm.py、utils.py
+- `rag/`：chunker.py（AST分块）、embeddings.py、indexer.py、retriever.py（混合检索）
+- `api/v1/`：reviews.py（CRUD）、ws.py（WebSocket）、health.py
+- `models/`：review.py、issue.py、repository.py、code_chunk.py
+- `tasks/`：review_task.py（ARQ任务主逻辑）、worker.py
+- `core/`：config.py、dependencies.py、logging.py
+
+**前端（全部完成）**
+- 5 个页面：NewReview、Dashboard、ReviewDetail、Repositories、Metrics
+- 7 个组件：Layout、ReviewCard、CodeViewer（Monaco封装+diff模式）、IssueList、StatusBadge、StreamOutput、useReview hook
+- React Router + NavLink 高亮路由
+
+### 空文件 / 占位存根（待实现）
+
+| 文件 | 状态 | 备注 |
+|------|------|------|
+| `platform/base.py` | 0 行 | GitPlatformAdapter 抽象基类 |
+| `platform/adapters/github.py` | 0 行 | **最高优先级** |
+| `platform/adapters/gitlab.py` | 0 行 | 结构同 GitHub，复制改造 |
+| `platform/adapters/gitee.py` | 0 行 | 结构同 GitHub，复制改造 |
+| `api/v1/webhooks.py` | 20 行 501 存根 | 需要真实签名验证+任务入队 |
+| `api/v1/repositories.py` | 20 行 501 存根 | 需要真实 CRUD |
+| `api/v1/metrics.py` | 14 行 501 存根 | 需要 SQL 统计查询 |
+| `sandbox/executor.py` | 0 行 | Docker exec 沙箱 |
+| `sandbox/validator.py` | 0 行 | 修复验证 |
+| `agents/autofix_agent.py` | 0 行 | 自动修复 Agent |
+| `tasks/index_task.py` | 0 行 | ARQ 仓库索引任务 |
+
+### 下一步优先级
+
+1. **GitHub Webhook 集成**（`platform/base.py` + `adapters/github.py` + `webhooks.py`）— 面试最高频追问点
+2. **Repositories API 真实 CRUD**（`repositories.py`）— 前端 Repos 页解锁
+3. **Metrics API 真实查询**（`metrics.py`）— 前端 Metrics 页解锁
+4. **评测集 + 测试补全**（`seed_eval_set.py` + tests/）— 第4个月核心
+5. **AutoFix + Sandbox** — 最后做，功能复杂，可作为加分项
+
+---
+
 ## 核心功能
 
-| 功能 | 描述 |
-|------|------|
-| 多平台接入 | 支持 GitHub / GitLab / Gitee，统一适配器接口 |
-| 多 Agent 并行审查 | 安全漏洞、性能问题、代码规范三路并行，最终聚合 |
-| RAG 代码库理解 | AST 级别分块，向量检索注入上下文 |
-| 自动修复 | 生成 Patch → 沙箱执行验证 → 展示 diff |
-| 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 |
-| Web Dashboard | 审查历史、统计指标、代码 diff 查看器 |
-| 可量化指标 | 检测精确率、响应延迟、修复成功率 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| 多平台接入 | GitHub / GitLab / Gitee，统一适配器接口 | ⏳ 适配器未实现 |
+| 多 Agent 并行审查 | 安全/性能/规范三路并行，最终聚合 | ✅ 已完成 |
+| RAG 代码库理解 | AST 级别分块，向量检索注入上下文 | ✅ 已完成 |
+| 自动修复 | 生成 Patch → 沙箱执行验证 → 展示 diff | ⏳ 未实现 |
+| 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 | ✅ 已完成 |
+| Web Dashboard | 审查历史、统计指标、代码 diff 查看器 | ✅ 已完成 |
+| 可量化指标 | 检测精确率、响应延迟、修复成功率 | ⏳ 未实现 |
 
 ---
 
@@ -42,7 +107,6 @@
 | 缓存 & 消息 | Redis | 任务队列 / WebSocket 广播 / LLM 缓存 / 限流 |
 | 任务队列 | ARQ + Redis | 异步处理长时 AI 审查任务 |
 | 后端 API | Python 3.11 + FastAPI + Uvicorn | 异步，与流式 LLM 天然匹配 |
-| 监控（可选） | Prometheus + Grafana | 系统指标监控 |
 
 ### 平台集成层
 
@@ -108,82 +172,52 @@ codessentinel/
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/
-│   │   │   ├── reviews.py       # 审查 CRUD，触发审查
-│   │   │   ├── repositories.py  # 仓库管理
-│   │   │   ├── webhooks.py      # Git 平台 Webhook 接收
-│   │   │   ├── metrics.py       # 统计指标查询
-│   │   │   └── ws.py            # WebSocket 实时推送
+│   │   │   ├── reviews.py       ✅ 审查 CRUD，触发审查
+│   │   │   ├── repositories.py  ⏳ 501 存根，待实现
+│   │   │   ├── webhooks.py      ⏳ 501 存根，待实现
+│   │   │   ├── metrics.py       ⏳ 501 存根，待实现
+│   │   │   └── ws.py            ✅ WebSocket 实时推送
 │   │   ├── agents/
-│   │   │   ├── graph.py         # LangGraph 图定义（主入口）
-│   │   │   ├── state.py         # 图状态数据结构
-│   │   │   ├── prompts.py       # 所有 Agent 的 System Prompt
-│   │   │   ├── security_agent.py
-│   │   │   ├── performance_agent.py
-│   │   │   ├── style_agent.py
-│   │   │   ├── synthesis_agent.py
-│   │   │   └── autofix_agent.py
+│   │   │   ├── graph.py         ✅ LangGraph 图定义（主入口）
+│   │   │   ├── state.py         ✅ 图状态数据结构
+│   │   │   ├── prompts.py       ✅ 所有 Agent 的 System Prompt
+│   │   │   ├── security_agent.py  ✅
+│   │   │   ├── performance_agent.py ✅
+│   │   │   ├── style_agent.py   ✅
+│   │   │   ├── synthesis_agent.py ✅
+│   │   │   └── autofix_agent.py ⏳ 0 行，待实现
 │   │   ├── rag/
-│   │   │   ├── chunker.py       # AST 级别代码分块
-│   │   │   ├── embeddings.py    # Embedding 封装
-│   │   │   ├── indexer.py       # 仓库全量索引
-│   │   │   └── retriever.py     # 混合检索（语义 + BM25）
+│   │   │   ├── chunker.py       ✅ AST 级别代码分块
+│   │   │   ├── embeddings.py    ✅ Embedding 封装
+│   │   │   ├── indexer.py       ✅ 仓库全量索引
+│   │   │   └── retriever.py     ✅ 混合检索（语义 + BM25）
 │   │   ├── platform/
-│   │   │   ├── base.py          # GitPlatformAdapter 抽象基类
+│   │   │   ├── base.py          ⏳ 0 行，待实现
 │   │   │   └── adapters/
-│   │   │       ├── github.py
-│   │   │       ├── gitlab.py
-│   │   │       └── gitee.py
+│   │   │       ├── github.py    ⏳ 0 行，最高优先
+│   │   │       ├── gitlab.py    ⏳ 0 行
+│   │   │       └── gitee.py     ⏳ 0 行
 │   │   ├── sandbox/
-│   │   │   ├── executor.py      # 沙箱执行代码
-│   │   │   └── validator.py     # 验证修复结果
+│   │   │   ├── executor.py      ⏳ 0 行，待实现
+│   │   │   └── validator.py     ⏳ 0 行，待实现
 │   │   ├── tasks/
-│   │   │   ├── review_task.py   # 异步审查任务（ARQ Worker）
-│   │   │   └── index_task.py    # 异步索引任务
-│   │   ├── models/
-│   │   │   ├── review.py        # Review 表
-│   │   │   ├── repository.py    # Repository 表
-│   │   │   └── issue.py         # Issue 表（审查发现的问题）
-│   │   └── core/
-│   │       ├── config.py        # 环境变量与全局配置
-│   │       ├── dependencies.py  # FastAPI 依赖注入
-│   │       └── logging.py       # 结构化日志
+│   │   │   ├── review_task.py   ✅ 异步审查任务（ARQ Worker）
+│   │   │   └── index_task.py    ⏳ 0 行，待实现
+│   │   ├── models/              ✅ 全部已实现
+│   │   └── core/                ✅ 全部已实现
 │   ├── tests/
-│   │   ├── unit/
-│   │   │   ├── test_agents.py
-│   │   │   └── test_rag.py
-│   │   └── integration/
-│   │       └── test_review_flow.py
-│   ├── main.py                  # FastAPI app 入口
+│   │   ├── unit/                ⚠️ 骨架存在，覆盖率不足
+│   │   └── integration/         ⚠️ 骨架存在，覆盖率不足
+│   ├── main.py
 │   ├── requirements.txt
 │   └── Dockerfile
-├── frontend/
-│   └── src/
-│       ├── pages/
-│       │   ├── Dashboard.tsx    # 审查历史总览
-│       │   ├── ReviewDetail.tsx # 单次审查详情 + 实时流
-│       │   ├── Repositories.tsx # 仓库管理
-│       │   └── Metrics.tsx      # 统计指标面板
-│       ├── components/
-│       │   ├── ReviewCard.tsx   # 审查结果卡片
-│       │   ├── CodeViewer.tsx   # Monaco Editor 封装（diff 模式）
-│       │   ├── IssueList.tsx    # 问题列表（严重/警告/建议分级）
-│       │   └── StreamOutput.tsx # 实时流式输出组件
-│       ├── hooks/
-│       │   ├── useWebSocket.ts  # WebSocket 连接管理
-│       │   └── useReview.ts     # 审查相关 API 调用
-│       └── lib/
-│           ├── api.ts           # Axios/Fetch 封装
-│           └── utils.ts         # 工具函数
+├── frontend/src/                ✅ 全部已实现
 ├── scripts/
-│   ├── init_db.py               # 初始化数据库表
-│   └── seed_eval_set.py         # 生成评测集（含已知 Bug 样本）
-├── docs/
-│   ├── architecture.md          # 架构图（文字版）
-│   └── api.md                   # API 接口文档
+│   ├── seed_eval_set.py         ⏳ 第4个月实现
+│   └── dev-*.ps1                ✅ 开发启停脚本
 ├── docker-compose.yml
 ├── .env.example
-├── SPEC.md                      # 本文件
-└── README.md
+└── SPEC.md
 ```
 
 ---
@@ -203,11 +237,14 @@ codessentinel/
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | UUID | 主键 |
-| repository_id | UUID | 外键 |
-| pr_number | int | PR 编号 |
+| repository_id | UUID | 外键（可为空，手动提交时） |
+| pr_number | int | PR 编号（可为空，手动提交时） |
 | status | enum | pending / running / done / failed |
+| source_code | text | 手动提交时存储原始代码 |
+| language | str | 代码语言 |
 | duration_ms | int | 审查耗时（毫秒） |
 | total_issues | int | 发现问题总数 |
+| report_text | text | Synthesis Agent 生成的完整报告 |
 | created_at | timestamp | |
 
 ### issues
@@ -226,28 +263,6 @@ codessentinel/
 
 ---
 
-## 代码量目标
-
-| 模块 | 目标行数 |
-|------|---------|
-| 后端（agents + rag + platform + api + models + tasks） | ~5,500 行 |
-| 前端（pages + components + hooks + lib） | ~3,000 行 |
-| 测试（unit + integration） | ~1,500 行 |
-| **合计** | **~10,000 行** |
-
----
-
-## 4 个月开发路线图
-
-| 时间 | 里程碑 |
-|------|--------|
-| 第 1 个月 | 学习基础 + MVP（单 LLM 调用审查，流式输出，最简前端） |
-| 第 2 个月 | Multi-Agent 系统 + RAG 代码库理解 |
-| 第 3 个月 | Git 平台集成（Webhook + PR 评论）+ 完整前端 Dashboard |
-| 第 4 个月 | 评测指标 + 测试 + 性能优化 + 面试材料准备 |
-
----
-
 ## 面试核心设计决策（须能深度阐述）
 
 1. **为什么用 LangGraph 而不是直接 LangChain？**
@@ -261,3 +276,9 @@ codessentinel/
 
 4. **如何量化项目效果？**
    → 构建含已知 Bug 的评测集，计算检测精确率（P）和召回率（R），对比 single-LLM baseline
+
+5. **Webhook 安全如何保证？**
+   → HMAC-SHA256 签名验证，密钥存 .env，每个仓库独立 secret
+
+6. **流式输出的实现路径？**
+   → LLM streaming → Redis Pub/Sub → WebSocket → 前端逐 token 追加，禁止等全部生成完再返回
