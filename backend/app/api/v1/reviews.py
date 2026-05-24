@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import case, select
 
 from app.core.dependencies import DBSessionDep
 from app.models.issue import Issue
@@ -59,6 +59,8 @@ async def create_review(
 ) -> dict:
     if not body.source_code.strip():
         raise HTTPException(status_code=400, detail="source_code cannot be empty")
+    if len(body.source_code) > 50_000:
+        raise HTTPException(status_code=400, detail="source_code exceeds 50 000 characters")
 
     review = Review(
         status=ReviewStatus.pending,
@@ -90,8 +92,9 @@ async def get_review(review_id: str, db: DBSessionDep) -> ReviewResponse:
     if review is None:
         raise HTTPException(status_code=404, detail="Review not found")
 
+    severity_order = case({"critical": 0, "warning": 1, "suggestion": 2}, value=Issue.severity)
     result = await db.execute(
-        select(Issue).where(Issue.review_id == uid).order_by(Issue.severity)
+        select(Issue).where(Issue.review_id == uid).order_by(severity_order)
     )
     return _to_response(review, list(result.scalars()))
 
