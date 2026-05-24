@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useReview } from './hooks/useReview'
+import type { AgentName } from './lib/types'
 import { StreamOutput } from './components/StreamOutput'
 import { IssueList } from './components/IssueList'
 import { StatusBadge } from './components/StatusBadge'
@@ -16,14 +17,24 @@ def transfer(sender_id, receiver_id, amount):
     db.execute(f"UPDATE users SET balance={receiver.balance} WHERE id={receiver_id}")
 `
 
+const AGENT_LABELS: Record<AgentName, string> = {
+  security:    '🔒 Security',
+  performance: '⚡ Performance',
+  style:       '✏️ Style',
+  synthesis:   '📝 Synthesis',
+}
+
+const AGENT_ORDER: AgentName[] = ['security', 'performance', 'style', 'synthesis']
+
 export default function App() {
   const [code, setCode] = useState('')
   const [language, setLanguage] = useState('python')
-  const { phase, streamText, review, errorMsg, startReview } = useReview()
+  const { phase, streamText, review, errorMsg, agentStatuses, startReview } = useReview()
 
   const isRunning = phase === 'submitting' || phase === 'streaming'
   const isDone = phase === 'done'
   const isError = phase === 'error'
+  const showAgents = phase !== 'idle'
 
   const handleSubmit = () => {
     if (!code.trim() || isRunning) return
@@ -39,9 +50,9 @@ export default function App() {
         <div className="ml-auto">
           {phase !== 'idle' && (
             <StatusBadge status={
-              phase === 'submitting' || phase === 'streaming' ? 'running'
-              : phase === 'done' ? 'done'
-              : phase === 'error' ? 'failed'
+              isRunning ? 'running'
+              : isDone   ? 'done'
+              : isError  ? 'failed'
               : 'pending'
             } />
           )}
@@ -49,7 +60,7 @@ export default function App() {
       </header>
 
       {/* Main two-column layout */}
-      <main className="flex flex-1 overflow-hidden gap-0">
+      <main className="flex flex-1 overflow-hidden">
         {/* Left panel — code input */}
         <div className="w-1/2 flex flex-col border-r border-slate-800 p-4 gap-3">
           <div className="flex items-center gap-2">
@@ -79,6 +90,30 @@ export default function App() {
             spellCheck={false}
             className="flex-1 bg-slate-900 text-slate-200 font-mono text-sm rounded-lg p-4 border border-slate-700 focus:outline-none focus:border-slate-500 resize-none leading-relaxed placeholder:text-slate-600"
           />
+
+          {/* Agent 进度面板 */}
+          {showAgents && (
+            <div className="flex gap-2 pt-1">
+              {AGENT_ORDER.map(agent => {
+                const s = agentStatuses[agent]
+                return (
+                  <div
+                    key={agent}
+                    className={`flex-1 rounded px-2 py-1.5 text-xs text-center transition-colors ${
+                      s.status === 'done'    ? 'bg-green-900 text-green-300' :
+                      s.status === 'running' ? 'bg-blue-900 text-blue-300 animate-pulse' :
+                                              'bg-slate-800 text-slate-500'
+                    }`}
+                  >
+                    <div>{AGENT_LABELS[agent]}</div>
+                    {s.status === 'done' && s.issueCount !== undefined && agent !== 'synthesis' && (
+                      <div className="text-xs opacity-70">{s.issueCount} issues</div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right panel — output */}

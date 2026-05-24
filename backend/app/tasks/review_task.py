@@ -1,8 +1,11 @@
-"""
-审查后台任务。
+"""审查后台任务（ARQ）。
 
-MVP 阶段用 FastAPI BackgroundTasks 驱动；
-feat/arq-worker 分支将迁移为 ARQ 队列 Worker。
+流式协议：
+  {"type": "agent_start",      "agent": "security"|"performance"|"style"|"synthesis"}
+  {"type": "agent_done",       "agent": "...", "issue_count": N}
+  {"type": "synthesis_token",  "content": "..."}   ← synthesis LLM 逐 token
+  {"type": "done",             "issue_count": N, "duration_ms": N}
+  {"type": "error",            "message": "..."}
 """
 
 import json
@@ -10,12 +13,9 @@ import re
 import time
 import uuid
 
-from langchain_core.messages import HumanMessage, SystemMessage
-from sqlalchemy import select
-
-from app.agents.llm import get_llm
-from app.agents.prompts import REVIEW_SYSTEM_PROMPT, build_review_prompt
-from app.agents.state import IssueOutput
+from app.agents.graph import compiled_graph
+from app.agents.state import IssueOutput, ReviewState
+from app.agents.synthesis_agent import deduplicate_issues
 from app.core.dependencies import get_redis, get_session_factory
 from app.core.logging import get_logger
 from app.models.issue import Issue
@@ -24,10 +24,11 @@ from app.models.review import Review, ReviewStatus
 log = get_logger(__name__)
 
 _STREAM_CHANNEL = "review:{review_id}:stream"
+_AGENT_NODES = {"security", "performance", "style"}
 
 
-async def run_review_task(review_id: str, source_code: str, language: str) -> None:
-    """流式调用 LLM，将 token 推送到 Redis Pub/Sub，结束后将结果写入数据库。"""
+async def run_review_task(ctx: dict, review_id: str, source_code: str, language: str) -> None:
+    """ARQ 入口：驱动 LangGraph 图，推送进度事件到 Redis Pub/Sub。"""
     channel = _STREAM_CHANNEL.format(review_id=review_id)
     session_factory = get_session_factory()
     redis = get_redis()
@@ -43,27 +44,60 @@ async def run_review_task(review_id: str, source_code: str, language: str) -> No
             review.status = ReviewStatus.running
             await db.commit()
 
-            messages = [
-                SystemMessage(content=REVIEW_SYSTEM_PROMPT),
-                HumanMessage(content=build_review_prompt(source_code, language)),
-            ]
+            initial_state: ReviewState = {
+                "source_code": source_code,
+                "language": language,
+                "rag_context": "",   # paste 模式无仓库上下文
+                "issues": [],
+                "report_text": "",
+                "error": None,
+            }
 
-            llm = get_llm()
-            accumulated = ""
-            async for chunk in llm.astream(messages):
-                token = chunk.content
-                if token:
-                    accumulated += token
-                    await redis.publish(
-                        channel,
-                        json.dumps({"type": "token", "content": token}),
-                    )
+            final_state: ReviewState | None = None
 
-            issues = _parse_issues(accumulated)
+            # astream_events 遍历图执行事件，按类型路由到 Pub/Sub 消息
+            async for event in compiled_graph.astream_events(initial_state, version="v2"):
+                kind: str = event["event"]
+                name: str = event.get("name", "")
+                tags: list[str] = event.get("tags", [])
+
+                if kind == "on_chain_start" and name in _AGENT_NODES:
+                    await redis.publish(channel, json.dumps({"type": "agent_start", "agent": name}))
+
+                elif kind == "on_chain_end" and name in _AGENT_NODES:
+                    output = event["data"].get("output") or {}
+                    issue_count = len(output.get("issues", []))
+                    await redis.publish(channel, json.dumps({
+                        "type": "agent_done",
+                        "agent": name,
+                        "issue_count": issue_count,
+                    }))
+
+                elif kind == "on_chain_start" and name == "synthesis":
+                    await redis.publish(channel, json.dumps({"type": "agent_start", "agent": "synthesis"}))
+
+                elif kind == "on_chat_model_stream" and "synthesis" in tags:
+                    token: str = event["data"]["chunk"].content
+                    if token:
+                        await redis.publish(channel, json.dumps({
+                            "type": "synthesis_token",
+                            "content": token,
+                        }))
+
+                elif kind == "on_chain_end" and name == "LangGraph":
+                    # 图执行结束，拿到最终状态
+                    final_state = event["data"].get("output")
+
+            if final_state is None:
+                raise RuntimeError("LangGraph returned no final state")
+
+            # 三个并行 Agent 的输出经 Reducer 合并，写 DB 前统一去重
+            issues: list[IssueOutput] = deduplicate_issues(final_state.get("issues", []))
+            report_text: str = final_state.get("report_text", "")
             duration_ms = int((time.monotonic() - started_at) * 1000)
 
             review.status = ReviewStatus.done
-            review.report_text = accumulated
+            review.report_text = report_text
             review.total_issues = len(issues)
             review.duration_ms = duration_ms
             for issue in issues:
@@ -71,6 +105,7 @@ async def run_review_task(review_id: str, source_code: str, language: str) -> No
                     review_id=review.id,
                     category=issue.category,
                     severity=issue.severity,
+                    file_path=issue.file_path,
                     line_start=issue.line_start,
                     line_end=issue.line_end,
                     description=issue.description,
@@ -78,10 +113,11 @@ async def run_review_task(review_id: str, source_code: str, language: str) -> No
                 ))
             await db.commit()
 
-            await redis.publish(
-                channel,
-                json.dumps({"type": "done", "issue_count": len(issues), "duration_ms": duration_ms}),
-            )
+            await redis.publish(channel, json.dumps({
+                "type": "done",
+                "issue_count": len(issues),
+                "duration_ms": duration_ms,
+            }))
             log.info("review_done", review_id=review_id, issues=len(issues), ms=duration_ms)
 
         except Exception as exc:
@@ -92,14 +128,13 @@ async def run_review_task(review_id: str, source_code: str, language: str) -> No
                 await db.commit()
             except Exception:
                 pass
-            await redis.publish(
-                channel,
-                json.dumps({"type": "error", "message": str(exc)}),
-            )
+            await redis.publish(channel, json.dumps({"type": "error", "message": str(exc)}))
 
+
+# ── 遗留：v0.1.0 单节点解析函数，供单元测试继续使用 ─────────────────────────────
 
 def _parse_issues(text: str) -> list[IssueOutput]:
-    """从 LLM 响应末尾的 ```json 块中提取结构化 issue 列表。"""
+    """从 LLM 响应末尾的 ```json 块中提取结构化 issue 列表（v0.1.0 遗留）。"""
     matches = re.findall(r"```json\s*([\s\S]*?)\s*```", text)
     if not matches:
         log.warning("no_json_block_in_response", preview=text[-300:])
