@@ -1,8 +1,10 @@
 import axios from 'axios'
 import type { Review } from './types'
 
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
 const http = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: `${API_BASE}/api/v1`,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -46,4 +48,4 @@ export const metricsApi = {
   summary: () => http.get<MetricsSummary>('/metrics'),
 }
 
-export const WS_BASE = 'ws://localhost:8000'
+export const WS_BASE = import.meta.env.VITE_WS_URL ?? API_BASE

@@ -1,0 +1,179 @@
+{
+  "samples": [
+    {
+      "id": "perf_n_plus_one_001",
+      "language": "python",
+      "source_code": "from sqlalchemy.orm import Session\n\n\ndef get_posts_with_authors(db: Session) -> list[dict]:\n    posts = db.query(Post).all()\n    result = []\n    for post in posts:\n        author = db.query(User).filter(User.id == post.author_id).first()\n        result.append({'title': post.title, 'author': author.name})\n    return result",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "line_end": 8,
+          "keywords": ["n+1", "eager loading", "joinedload", "selectinload", "query in loop", "n queries"]
+        }
+      ]
+    },
+    {
+      "id": "perf_sync_in_async_002",
+      "language": "python",
+      "source_code": "import requests\n\n\nasync def fetch_prices(product_ids: list[int]) -> list[float]:\n    prices = []\n    for pid in product_ids:\n        resp = requests.get(f'https://pricing.example.com/price/{pid}')\n        prices.append(resp.json()['price'])\n    return prices",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": ["blocking", "async", "event loop", "httpx", "aiohttp", "asyncio", "synchronous"]
+        }
+      ]
+    },
+    {
+      "id": "perf_on2_search_003",
+      "language": "python",
+      "source_code": "def find_common_items(list_a: list[int], list_b: list[int]) -> list[int]:\n    common = []\n    for item in list_a:\n        if item in list_b and item not in common:\n            common.append(item)\n    return common",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": ["o(n", "set", "linear search", "complexity", "in operator", "quadratic"]
+        }
+      ]
+    },
+    {
+      "id": "perf_regex_recompile_004",
+      "language": "python",
+      "source_code": "import re\n\n\ndef validate_emails(emails: list[str]) -> list[bool]:\n    results = []\n    for email in emails:\n        match = re.match(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+', email)\n        results.append(bool(match))\n    return results",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": ["re.compile", "compile", "repeated compilation", "regex", "precompile", "loop"]
+        }
+      ]
+    },
+    {
+      "id": "perf_load_all_for_count_005",
+      "language": "python",
+      "source_code": "from sqlalchemy.orm import Session\n\n\ndef count_active_users(db: Session) -> int:\n    users = db.query(User).filter(User.active == True).all()\n    return len(users)\n\n\ndef count_pending_orders(db: Session) -> int:\n    orders = db.query(Order).filter(Order.status == 'pending').all()\n    return len(orders)",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": ["count", "func.count", "all()", "unnecessary load", "aggregation", "scalar"]
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": ["count", "func.count", "all()", "unnecessary load", "aggregation", "scalar"]
+        }
+      ]
+    },
+    {
+      "id": "perf_time_sleep_async_006",
+      "language": "python",
+      "source_code": "import asyncio\nimport time\n\n\nasync def wait_for_completion(job_id: str, max_retries: int = 10) -> dict:\n    for attempt in range(max_retries):\n        result = await check_job_status(job_id)\n        if result['done']:\n            return result\n        time.sleep(2)\n    raise TimeoutError(f'Job {job_id} timed out')",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": ["time.sleep", "asyncio.sleep", "blocking", "event loop", "async", "coroutine"]
+        }
+      ]
+    },
+    {
+      "id": "perf_conn_per_row_007",
+      "language": "python",
+      "source_code": "import psycopg2\n\nDSN = 'postgresql://app:pass@localhost/mydb'\n\n\ndef bulk_insert_events(events: list[dict]) -> None:\n    for event in events:\n        conn = psycopg2.connect(DSN)\n        cur = conn.cursor()\n        cur.execute(\n            'INSERT INTO events (type, payload) VALUES (%s, %s)',\n            (event['type'], event['payload']),\n        )\n        conn.commit()\n        conn.close()",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "line_end": 8,
+          "keywords": ["connection per iteration", "connection pooling", "executemany", "batch insert", "loop", "open connection"]
+        }
+      ]
+    },
+    {
+      "id": "perf_str_concat_loop_008",
+      "language": "python",
+      "source_code": "def build_html_list(items: list[str]) -> str:\n    html = '<ul>'\n    for item in items:\n        html += '<li>' + item + '</li>'\n    html += '</ul>'\n    return html\n\n\ndef build_report_header(sections: list[str]) -> str:\n    header = ''\n    for section in sections:\n        header += '<h2>' + section + '</h2>'\n    return header",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": ["string concatenation", "join", "immutable", "o(n", "StringIO", "quadratic"]
+        }
+      ]
+    },
+    {
+      "id": "perf_no_pagination_009",
+      "language": "python",
+      "source_code": "from fastapi import APIRouter\nfrom sqlalchemy.orm import Session\n\nrouter = APIRouter()\n\n\n@router.get('/audit-logs')\nasync def list_audit_logs(db: Session) -> list[dict]:\n    logs = db.query(AuditLog).order_by(AuditLog.created_at.desc()).all()\n    return [{'id': str(l.id), 'message': l.message} for l in logs]",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "line_end": 9,
+          "keywords": ["pagination", "limit", "offset", "all()", "unbounded query", "full table scan"]
+        }
+      ]
+    },
+    {
+      "id": "perf_linear_search_in_loop_010",
+      "language": "python",
+      "source_code": "def enrich_orders(orders: list[dict], products: list[dict]) -> list[dict]:\n    enriched = []\n    for order in orders:\n        product = next(\n            (p for p in products if p['id'] == order['product_id']),\n            None,\n        )\n        enriched.append({**order, 'product_name': product['name'] if product else 'N/A'})\n    return enriched",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "line_end": 6,
+          "keywords": ["o(n", "linear search", "dict lookup", "index", "complexity", "quadratic"]
+        }
+      ]
+    },
+    {
+      "id": "perf_repeated_aggregation_011",
+      "language": "python",
+      "source_code": "def get_high_spenders(orders: list[dict], threshold: float = 1000.0) -> list[int]:\n    customer_ids = {o['customer_id'] for o in orders}\n    result = []\n    for cid in customer_ids:\n        total = sum(o['amount'] for o in orders if o['customer_id'] == cid)\n        if total > threshold:\n            result.append(cid)\n    return result",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": ["o(n", "redundant computation", "groupby", "defaultdict", "precompute", "full scan"]
+        }
+      ]
+    },
+    {
+      "id": "perf_sort_for_max_012",
+      "language": "python",
+      "source_code": "def get_latest_event(events: list[dict]) -> dict | None:\n    if not events:\n        return None\n    sorted_events = sorted(events, key=lambda e: e['timestamp'], reverse=True)\n    return sorted_events[0]\n\n\ndef get_cheapest_item(items: list[dict]) -> dict | None:\n    if not items:\n        return None\n    return sorted(items, key=lambda x: x['price'])[0]",
+      "expected_issues": [
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": ["sort", "max", "min", "o(n log n)", "unnecessary sort", "linear", "key function"]
+        }
+      ]
+    }
+  ]
+}

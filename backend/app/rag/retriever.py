@@ -28,7 +28,7 @@ async def retrieve_context(
     if repository_id is None:
         return ""
 
-    query_vec = await embed_text(query)
+    query_vec = await embed_text(query[:4000])
 
     # pgvector 余弦距离（<=>），越小越相似
     stmt = (

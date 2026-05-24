@@ -1,0 +1,151 @@
+{
+  "samples": [
+    {
+      "id": "style_bare_except_001",
+      "language": "python",
+      "source_code": "def parse_config_value(raw: str) -> int:\n    try:\n        return int(raw)\n    except:\n        return -1\n\n\ndef parse_port(raw: str) -> int:\n    try:\n        port = int(raw)\n        if not 1 <= port <= 65535:\n            raise ValueError('out of range')\n        return port\n    except:\n        return 8080",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": ["bare except", "BaseException", "KeyboardInterrupt", "specific exception", "except clause"]
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 14,
+          "line_end": 14,
+          "keywords": ["bare except", "BaseException", "KeyboardInterrupt", "specific exception", "except clause"]
+        }
+      ]
+    },
+    {
+      "id": "style_swallowed_exception_002",
+      "language": "python",
+      "source_code": "import logging\n\nlog = logging.getLogger(__name__)\n\n\ndef save_report(report_id: int, data: dict) -> bool:\n    try:\n        db.update(report_id, data)\n        cache.delete(f'report:{report_id}')\n        return True\n    except Exception:\n        pass\n    return False",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 11,
+          "line_end": 12,
+          "keywords": ["swallowed exception", "silent failure", "log", "raise", "bare pass", "ignored exception"]
+        }
+      ]
+    },
+    {
+      "id": "style_magic_numbers_003",
+      "language": "python",
+      "source_code": "def apply_rate_limit(requests_made: int, tier: int) -> bool:\n    if tier == 1:\n        return requests_made <= 100\n    if tier == 2:\n        return requests_made <= 500\n    if tier == 3:\n        return requests_made <= 2000\n    return requests_made <= 50",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "line_end": 8,
+          "keywords": ["magic number", "constant", "named constant", "readability", "maintainability", "literal"]
+        }
+      ]
+    },
+    {
+      "id": "style_deep_nesting_004",
+      "language": "python",
+      "source_code": "def handle_payment(event: dict) -> str:\n    if event:\n        if event.get('type') == 'payment':\n            if event.get('data'):\n                data = event['data']\n                if data.get('status') == 'completed':\n                    if data.get('amount', 0) > 0:\n                        if data.get('currency') == 'USD':\n                            return 'process'\n    return 'skip'",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "line_end": 9,
+          "keywords": ["deep nesting", "early return", "guard clause", "nesting", "complexity", "flatten"]
+        }
+      ]
+    },
+    {
+      "id": "style_mutable_default_arg_005",
+      "language": "python",
+      "source_code": "def register_handler(name: str, handlers: list = []) -> list:\n    handlers.append(name)\n    return handlers\n\n\nhttp_handlers = register_handler('http')\ngrpc_handlers = register_handler('grpc')\n# grpc_handlers unexpectedly contains ['http', 'grpc']",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 1,
+          "line_end": 1,
+          "keywords": ["mutable default", "default argument", "None", "shared state", "list", "evaluated once"]
+        }
+      ]
+    },
+    {
+      "id": "style_compare_none_006",
+      "language": "python",
+      "source_code": "def get_user_display_name(user: dict) -> str:\n    if user.get('nickname') != None:\n        return user['nickname']\n    if user.get('full_name') == None:\n        return 'Anonymous'\n    return user['full_name']",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "line_end": 4,
+          "keywords": ["is None", "== None", "identity", "PEP 8", "comparison", "is not None"]
+        }
+      ]
+    },
+    {
+      "id": "style_boolean_flag_params_007",
+      "language": "python",
+      "source_code": "def send_notification(\n    user_id: int,\n    message: str,\n    send_email: bool,\n    send_sms: bool,\n    send_push: bool,\n) -> dict:\n    results = {}\n    if send_email:\n        results['email'] = email_client.send(user_id, message)\n    if send_sms:\n        results['sms'] = sms_client.send(user_id, message)\n    if send_push:\n        results['push'] = push_client.send(user_id, message)\n    return results",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 4,
+          "line_end": 6,
+          "keywords": ["boolean parameter", "flag argument", "enum", "options", "readability", "boolean trap"]
+        }
+      ]
+    },
+    {
+      "id": "style_god_function_008",
+      "language": "python",
+      "source_code": "def process_new_user(email: str, password: str, plan: str) -> dict:\n    if not email or '@' not in email:\n        raise ValueError('invalid email')\n    if len(password) < 8:\n        raise ValueError('password too short')\n    import hashlib\n    pwd_hash = hashlib.sha256(password.encode()).hexdigest()\n    user_id = db.execute(\n        'INSERT INTO users (email, pwd) VALUES (?, ?)', (email, pwd_hash)\n    ).lastrowid\n    subscription = billing.create_subscription(user_id, plan)\n    smtp.send(email, subject='Welcome!', body=f'Your plan: {subscription.id}')\n    analytics.track('user_registered', email=email, plan=plan)\n    audit_log.write(f'new_user: {email}')\n    return {'user_id': user_id, 'subscription_id': subscription.id}",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "line_end": 15,
+          "keywords": ["god function", "single responsibility", "refactor", "too many responsibilities", "separation of concerns", "long function"]
+        }
+      ]
+    },
+    {
+      "id": "style_unused_variable_009",
+      "language": "python",
+      "source_code": "def compute_stats(values: list[float]) -> dict:\n    n = len(values)\n    total = sum(values)\n    mean = total / n\n    sorted_vals = sorted(values)\n    variance = sum((x - mean) ** 2 for x in values) / n\n    std_dev = variance ** 0.5\n    return {'mean': mean, 'std_dev': std_dev, 'n': n}",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": ["unused variable", "dead code", "unnecessary computation", "unreferenced", "never used"]
+        }
+      ]
+    },
+    {
+      "id": "style_missing_type_hints_010",
+      "language": "python",
+      "source_code": "class ReportBuilder:\n    def __init__(self, config):\n        self.config = config\n        self.sections = []\n\n    def add_section(self, title, content):\n        self.sections.append({'title': title, 'content': content})\n        return self\n\n    def build(self):\n        return ' '.join(\n            f\"## {s['title']}\\n{s['content']}\" for s in self.sections\n        )",
+      "expected_issues": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "line_end": 10,
+          "keywords": ["type annotation", "type hint", "missing types", "mypy", "Any", "untyped"]
+        }
+      ]
+    }
+  ]
+}

@@ -40,4 +40,6 @@ structlog==24.4.0
 pytest==8.3.4
 pytest-asyncio==0.24.0
 pytest-cov==6.0.0
-httpx==0.28.1
+
+# ── 显式固定传递依赖版本 ──────────────────────────
+openai>=1.56.2

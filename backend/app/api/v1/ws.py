@@ -65,6 +65,28 @@ async def review_stream(websocket: WebSocket, review_id: str) -> None:
     except Exception:
         pass  # 追赶失败不影响后续正常流
 
+    # 二次检查：防止 subscribe 之前 review 已结束的竞态
+    try:
+        async with get_session_factory()() as db2:
+            review2 = await db2.get(Review, uid)
+        if review2 and review2.status == ReviewStatus.done:
+            await websocket.send_text(json.dumps({
+                "type": "done",
+                "issue_count": review2.total_issues,
+                "duration_ms": review2.duration_ms,
+            }))
+            await websocket.close()
+            return
+        if review2 and review2.status == ReviewStatus.failed:
+            await websocket.send_text(json.dumps({
+                "type": "error",
+                "message": review2.error_message or "review failed",
+            }))
+            await websocket.close()
+            return
+    except Exception:
+        pass  # 若检查失败，降级继续监听频道
+
     log.info("ws_connected", review_id=review_id)
 
     try:

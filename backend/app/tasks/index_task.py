@@ -43,7 +43,13 @@ _SKIP_DIRS = {
     "coverage", "htmlcov", "fixtures", "static", "assets", "public",
 }
 _PRIORITY_DIRS = {"src", "app", "lib", "core", "api", "services", "models"}
-_EXT_TO_LANG   = {".py": "python", ".js": "javascript", ".ts": "typescript"}
+_EXT_TO_LANG   = {
+    ".py":  "python",
+    ".js":  "javascript",
+    ".jsx": "javascript",
+    ".ts":  "typescript",
+    ".tsx": "typescript",
+}
 
 
 async def run_index_task(ctx: dict, repository_id: str) -> None:

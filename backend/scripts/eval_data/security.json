@@ -1,0 +1,263 @@
+{
+  "samples": [
+    {
+      "id": "sec_sql_inject_fstring_001",
+      "language": "python",
+      "source_code": "import sqlite3\n\n\ndef get_user_by_name(conn, username: str):\n    cursor = conn.cursor()\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"\n    cursor.execute(query)\n    return cursor.fetchone()",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "line_end": 6,
+          "keywords": ["sql injection", "f-string", "parameterized", "user input", "format string"]
+        }
+      ]
+    },
+    {
+      "id": "sec_sql_inject_concat_002",
+      "language": "python",
+      "source_code": "def get_user(conn, username: str):\n    query = \"SELECT * FROM accounts WHERE username = '\" + username + \"'\"\n    return conn.execute(query).fetchone()\n\n\ndef get_admin(conn, role: str):\n    query = \"SELECT * FROM accounts WHERE role = '\" + role + \"' AND active = 1\"\n    return conn.execute(query).fetchone()",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "line_end": 2,
+          "keywords": ["sql injection", "concatenation", "parameterized", "user input"]
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": ["sql injection", "concatenation", "parameterized", "user input"]
+        }
+      ]
+    },
+    {
+      "id": "sec_cmd_inject_shell_003",
+      "language": "python",
+      "source_code": "import subprocess\n\n\ndef run_ping(host: str) -> str:\n    result = subprocess.run(\n        f\"ping -c 4 {host}\",\n        shell=True,\n        capture_output=True,\n        text=True,\n    )\n    return result.stdout",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 7,
+          "keywords": ["command injection", "shell=True", "shell injection", "user input", "arbitrary command"]
+        }
+      ]
+    },
+    {
+      "id": "sec_cmd_inject_ossystem_004",
+      "language": "python",
+      "source_code": "import os\n\n\ndef convert_image(filename: str, fmt: str) -> None:\n    cmd = f\"convert {filename} output.{fmt}\"\n    os.system(cmd)\n\n\ndef resize_image(filename: str, width: int) -> None:\n    cmd = f\"mogrify -resize {width} {filename}\"\n    os.system(cmd)",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 6,
+          "keywords": ["command injection", "os.system", "shell", "user input", "arbitrary command"]
+        }
+      ]
+    },
+    {
+      "id": "sec_path_traversal_005",
+      "language": "python",
+      "source_code": "import os\n\nBASE_DIR = '/var/www/files'\n\n\ndef read_document(filename: str) -> str:\n    file_path = os.path.join(BASE_DIR, filename)\n    with open(file_path, 'r') as f:\n        return f.read()\n\n\ndef delete_document(filename: str) -> None:\n    file_path = os.path.join(BASE_DIR, filename)\n    os.remove(file_path)",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": ["path traversal", "directory traversal", "sanitize", "../", "resolve", "is_relative_to"]
+        }
+      ]
+    },
+    {
+      "id": "sec_path_traversal_resolve_006",
+      "language": "python",
+      "source_code": "from pathlib import Path\n\nUPLOAD_DIR = Path('/var/uploads')\n\n\ndef serve_file(filename: str) -> bytes:\n    file_path = UPLOAD_DIR / filename\n    if not file_path.exists():\n        raise FileNotFoundError(f'File not found: {filename}')\n    return file_path.read_bytes()",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": ["path traversal", "resolve", "is_relative_to", "directory traversal", "../"]
+        }
+      ]
+    },
+    {
+      "id": "sec_hardcoded_password_007",
+      "language": "python",
+      "source_code": "import psycopg2\n\nDB_HOST = 'db.internal.company.com'\nDB_USER = 'app_user'\nDB_PASSWORD = 'S3cur3P@ssw0rd!'\nDB_NAME = 'production'\n\n\ndef get_connection():\n    return psycopg2.connect(\n        host=DB_HOST,\n        user=DB_USER,\n        password=DB_PASSWORD,\n        dbname=DB_NAME,\n    )",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": ["hardcoded", "credential", "secret", "environment variable", "password", "plaintext"]
+        }
+      ]
+    },
+    {
+      "id": "sec_hardcoded_api_key_008",
+      "language": "python",
+      "source_code": "import requests\n\nOPENAI_API_KEY = 'sk-abc123def456ghi789jkl000mno111'\nBASE_URL = 'https://api.openai.com/v1'\n\n\ndef chat_complete(prompt: str) -> str:\n    headers = {'Authorization': f'Bearer {OPENAI_API_KEY}'}\n    payload = {'model': 'gpt-4', 'messages': [{'role': 'user', 'content': prompt}]}\n    resp = requests.post(f'{BASE_URL}/chat/completions', headers=headers, json=payload)\n    return resp.json()['choices'][0]['message']['content']",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "line_end": 3,
+          "keywords": ["hardcoded", "api key", "secret", "environment variable", "credential", "token"]
+        }
+      ]
+    },
+    {
+      "id": "sec_insecure_pickle_009",
+      "language": "python",
+      "source_code": "import pickle\nimport base64\nfrom flask import Flask, request, session\n\napp = Flask(__name__)\n\n\n@app.route('/load_cart', methods=['POST'])\ndef load_cart():\n    cart_data = request.form.get('cart', '')\n    decoded = base64.b64decode(cart_data)\n    cart = pickle.loads(decoded)\n    session['cart'] = cart\n    return {'items': len(cart)}",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 12,
+          "line_end": 12,
+          "keywords": ["insecure deserialization", "pickle", "arbitrary code", "user input", "remote code execution"]
+        }
+      ]
+    },
+    {
+      "id": "sec_yaml_unsafe_load_010",
+      "language": "python",
+      "source_code": "import yaml\nfrom flask import Flask, request\n\napp = Flask(__name__)\n\n\n@app.route('/config', methods=['POST'])\ndef update_config():\n    config_str = request.data.decode('utf-8')\n    config = yaml.load(config_str)\n    apply_config(config)\n    return {'status': 'ok'}",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": ["yaml.load", "safe_load", "SafeLoader", "arbitrary code", "deserialization", "Loader"]
+        }
+      ]
+    },
+    {
+      "id": "sec_xss_template_011",
+      "language": "python",
+      "source_code": "from flask import Flask, request, render_template_string\n\napp = Flask(__name__)\n\n\n@app.route('/greet')\ndef greet():\n    name = request.args.get('name', 'World')\n    template = f'<h1>Hello, {name}!</h1><p>Welcome back.</p>'\n    return render_template_string(template)",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "line_end": 10,
+          "keywords": ["xss", "cross-site scripting", "escape", "sanitize", "user input", "inject", "html"]
+        }
+      ]
+    },
+    {
+      "id": "sec_ssrf_012",
+      "language": "python",
+      "source_code": "import requests\nfrom flask import Flask, request, abort\n\napp = Flask(__name__)\n\n\n@app.route('/fetch')\ndef fetch_url():\n    url = request.args.get('url')\n    if not url:\n        abort(400)\n    response = requests.get(url, timeout=10)\n    return response.text, response.status_code",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 12,
+          "line_end": 12,
+          "keywords": ["ssrf", "server-side request forgery", "whitelist", "user-controlled url", "internal network"]
+        }
+      ]
+    },
+    {
+      "id": "sec_weak_random_013",
+      "language": "python",
+      "source_code": "import random\nimport string\n\n\ndef generate_session_token(length: int = 32) -> str:\n    chars = string.ascii_letters + string.digits\n    return ''.join(random.choice(chars) for _ in range(length))\n\n\ndef generate_reset_link(user_id: int) -> str:\n    token = generate_session_token()\n    return f'https://app.example.com/reset?token={token}&uid={user_id}'",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": ["cryptographically secure", "secrets", "random", "predictable", "token", "insecure"]
+        }
+      ]
+    },
+    {
+      "id": "sec_timing_attack_014",
+      "language": "python",
+      "source_code": "def verify_api_key(provided_key: str, valid_key: str) -> bool:\n    if len(provided_key) != len(valid_key):\n        return False\n    for a, b in zip(provided_key, valid_key):\n        if a != b:\n            return False\n    return True",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 2,
+          "line_end": 6,
+          "keywords": ["timing attack", "hmac.compare_digest", "constant time", "early exit", "side channel"]
+        }
+      ]
+    },
+    {
+      "id": "sec_open_redirect_015",
+      "language": "python",
+      "source_code": "from flask import Flask, request, redirect\n\napp = Flask(__name__)\n\n\n@app.route('/auth/callback')\ndef auth_callback():\n    # OAuth callback: redirect user after login\n    next_url = request.args.get('next', '/dashboard')\n    return redirect(next_url)",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": ["open redirect", "redirect", "user input", "external", "validate", "whitelist"]
+        }
+      ]
+    },
+    {
+      "id": "sec_xxe_lxml_016",
+      "language": "python",
+      "source_code": "from lxml import etree\nfrom flask import Flask, request\n\napp = Flask(__name__)\n\n\n@app.route('/parse_xml', methods=['POST'])\ndef parse_xml():\n    xml_data = request.data\n    parser = etree.XMLParser()\n    doc = etree.fromstring(xml_data, parser)\n    return {'root': doc.tag, 'children': len(doc)}",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": ["xxe", "xml external entity", "no_network", "resolve_entities", "injection", "entity"]
+        }
+      ]
+    },
+    {
+      "id": "sec_zip_slip_017",
+      "language": "python",
+      "source_code": "import zipfile\nimport os\n\n\ndef extract_archive(zip_path: str, dest_dir: str) -> list[str]:\n    extracted = []\n    with zipfile.ZipFile(zip_path, 'r') as zf:\n        for entry in zf.infolist():\n            target_path = os.path.join(dest_dir, entry.filename)\n            zf.extract(entry, dest_dir)\n            extracted.append(target_path)\n    return extracted",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "line_end": 9,
+          "keywords": ["zip slip", "path traversal", "directory traversal", "resolve", "../", "outside"]
+        }
+      ]
+    },
+    {
+      "id": "sec_md5_password_018",
+      "language": "python",
+      "source_code": "import hashlib\nimport sqlite3\n\n\ndef register_user(conn, username: str, password: str) -> int:\n    pwd_hash = hashlib.md5(password.encode()).hexdigest()\n    cursor = conn.cursor()\n    cursor.execute(\n        'INSERT INTO users (username, pwd_hash) VALUES (?, ?)',\n        (username, pwd_hash),\n    )\n    conn.commit()\n    return cursor.lastrowid",
+      "expected_issues": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "line_end": 6,
+          "keywords": ["md5", "bcrypt", "argon2", "salt", "password hash", "insecure hash", "broken"]
+        }
+      ]
+    }
+  ]
+}
