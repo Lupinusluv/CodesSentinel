@@ -21,6 +21,7 @@ export interface Review {
   duration_ms: number | null
   created_at: string
   report_text: string | null
+  source_code?: string | null
   issues: Issue[]
 }
 
