@@ -51,6 +51,20 @@ async def review_stream(websocket: WebSocket, review_id: str) -> None:
 
     pubsub = redis.pubsub()
     await pubsub.subscribe(channel)
+
+    # 订阅完成后补发已完成的 agent 进度（解决 WS 连接晚于 agent_done 事件的竞态）
+    try:
+        progress_key = f"review:{review_id}:progress"
+        completed: dict[str, str] = await redis.hgetall(progress_key)
+        for agent_name, issue_count_str in completed.items():
+            await websocket.send_text(json.dumps({
+                "type": "agent_done",
+                "agent": agent_name,
+                "issue_count": int(issue_count_str),
+            }))
+    except Exception:
+        pass  # 追赶失败不影响后续正常流
+
     log.info("ws_connected", review_id=review_id)
 
     try:

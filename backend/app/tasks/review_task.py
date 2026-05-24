@@ -67,11 +67,12 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                 elif kind == "on_chain_end" and name in _AGENT_NODES:
                     output = event["data"].get("output") or {}
                     issue_count = len(output.get("issues", []))
-                    await redis.publish(channel, json.dumps({
-                        "type": "agent_done",
-                        "agent": name,
-                        "issue_count": issue_count,
-                    }))
+                    msg = json.dumps({"type": "agent_done", "agent": name, "issue_count": issue_count})
+                    await redis.publish(channel, msg)
+                    # 持久化进度，供晚连接的 WS 追赶（TTL 1小时）
+                    progress_key = f"review:{review_id}:progress"
+                    await redis.hset(progress_key, name, issue_count)
+                    await redis.expire(progress_key, 3600)
 
                 elif kind == "on_chain_start" and name == "synthesis":
                     await redis.publish(channel, json.dumps({"type": "agent_start", "agent": "synthesis"}))
