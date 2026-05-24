@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { reviewApi, WS_BASE } from '../lib/api'
-import type { Review, StreamMessage } from '../lib/types'
+import type { AgentName, Review, StreamMessage } from '../lib/types'
 
 export type ReviewPhase = 'idle' | 'submitting' | 'streaming' | 'done' | 'error'
+
+export interface AgentStatus {
+  status: 'pending' | 'running' | 'done'
+  issueCount?: number
+}
 
 export function useReview() {
   const [phase, setPhase] = useState<ReviewPhase>('idle')
@@ -10,18 +15,30 @@ export function useReview() {
   const [streamText, setStreamText] = useState('')
   const [review, setReview] = useState<Review | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
+  const [agentStatuses, setAgentStatuses] = useState<Record<AgentName, AgentStatus>>({
+    security:    { status: 'pending' },
+    performance: { status: 'pending' },
+    style:       { status: 'pending' },
+    synthesis:   { status: 'pending' },
+  })
   const wsRef = useRef<WebSocket | null>(null)
 
-  // 组件卸载时关闭 WebSocket
   useEffect(() => () => wsRef.current?.close(), [])
 
+  const resetAgentStatuses = () => setAgentStatuses({
+    security:    { status: 'pending' },
+    performance: { status: 'pending' },
+    style:       { status: 'pending' },
+    synthesis:   { status: 'pending' },
+  })
+
   const startReview = async (sourceCode: string, language: string) => {
-    // 重置状态，关闭上一次的连接
     wsRef.current?.close()
     wsRef.current = null
     setStreamText('')
     setReview(null)
     setErrorMsg('')
+    resetAgentStatuses()
     setPhase('submitting')
 
     try {
@@ -36,10 +53,22 @@ export function useReview() {
       ws.onmessage = (event: MessageEvent) => {
         const msg: StreamMessage = JSON.parse(event.data as string)
 
-        if (msg.type === 'token') {
+        if (msg.type === 'agent_start') {
+          setAgentStatuses(prev => ({
+            ...prev,
+            [msg.agent]: { status: 'running' },
+          }))
+        } else if (msg.type === 'agent_done') {
+          setAgentStatuses(prev => ({
+            ...prev,
+            [msg.agent]: { status: 'done', issueCount: msg.issue_count },
+          }))
+        } else if (msg.type === 'synthesis_token') {
+          setStreamText(prev => prev + msg.content)
+        } else if (msg.type === 'token') {
+          // v0.1.0 兼容：单节点模式下的 token
           setStreamText(prev => prev + msg.content)
         } else if (msg.type === 'done') {
-          // 拉取结构化结果（含 issues 列表）
           reviewApi.get(id).then(res => {
             setReview(res.data)
             setPhase('done')
@@ -61,5 +90,5 @@ export function useReview() {
     }
   }
 
-  return { phase, reviewId, streamText, review, errorMsg, startReview }
+  return { phase, reviewId, streamText, review, errorMsg, agentStatuses, startReview }
 }

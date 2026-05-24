@@ -2,6 +2,8 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import redis.asyncio as aioredis
+from arq import ArqRedis, create_pool
+from arq.connections import RedisSettings as ArqRedisSettings
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -15,6 +17,7 @@ from app.core.config import Settings, get_settings
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
 _redis_client: aioredis.Redis | None = None
+_arq_pool: ArqRedis | None = None
 
 
 def get_engine(settings: Settings | None = None) -> AsyncEngine:
@@ -62,11 +65,26 @@ def get_redis(settings: Settings | None = None) -> aioredis.Redis:
     return _redis_client
 
 
+async def get_arq_pool(settings: Settings | None = None) -> ArqRedis:
+    global _arq_pool
+    if _arq_pool is None:
+        settings = settings or get_settings()
+        url = settings.redis_url  # redis://localhost:6379/0
+        parts = url.replace("redis://", "").split("/")[0].split(":")
+        host = parts[0]
+        port = int(parts[1]) if len(parts) > 1 else 6379
+        _arq_pool = await create_pool(ArqRedisSettings(host=host, port=port))
+    return _arq_pool
+
+
 async def close_resources() -> None:
-    global _engine, _redis_client, _session_factory
+    global _engine, _redis_client, _session_factory, _arq_pool
     if _redis_client is not None:
         await _redis_client.aclose()
         _redis_client = None
+    if _arq_pool is not None:
+        await _arq_pool.aclose()
+        _arq_pool = None
     if _engine is not None:
         await _engine.dispose()
         _engine = None

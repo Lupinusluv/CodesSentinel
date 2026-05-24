@@ -24,8 +24,13 @@ export interface Review {
   issues: Issue[]
 }
 
+export type AgentName = 'security' | 'performance' | 'style' | 'synthesis'
+
 export type StreamMessage =
-  | { type: 'token'; content: string }
-  | { type: 'done'; issue_count: number; duration_ms: number }
-  | { type: 'error'; message: string }
-  | { type: 'info'; message: string }
+  | { type: 'token';            content: string }
+  | { type: 'agent_start';      agent: AgentName }
+  | { type: 'agent_done';       agent: AgentName; issue_count: number }
+  | { type: 'synthesis_token';  content: string }
+  | { type: 'done';             issue_count: number; duration_ms: number }
+  | { type: 'error';            message: string }
+  | { type: 'info';             message: string }

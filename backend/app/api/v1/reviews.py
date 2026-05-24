@@ -1,13 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import case, select
 
-from app.core.dependencies import DBSessionDep
+from app.core.dependencies import DBSessionDep, get_arq_pool
 from app.models.issue import Issue
 from app.models.review import Review, ReviewStatus
-from app.tasks.review_task import run_review_task
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -54,7 +53,6 @@ async def list_reviews(db: DBSessionDep) -> list[ReviewResponse]:
 @router.post("", status_code=status.HTTP_202_ACCEPTED)
 async def create_review(
     body: CreateReviewRequest,
-    background_tasks: BackgroundTasks,
     db: DBSessionDep,
 ) -> dict:
     if not body.source_code.strip():
@@ -71,12 +69,8 @@ async def create_review(
     await db.commit()
     await db.refresh(review)
 
-    background_tasks.add_task(
-        run_review_task,
-        str(review.id),
-        body.source_code,
-        body.language,
-    )
+    arq = await get_arq_pool()
+    await arq.enqueue_job("run_review_task", str(review.id), body.source_code, body.language)
 
     return {"review_id": str(review.id), "status": review.status.value}
 
