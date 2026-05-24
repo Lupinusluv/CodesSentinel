@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import case, select
+from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import DBSessionDep, get_arq_pool
 from app.models.issue import Issue
@@ -37,6 +38,7 @@ class ReviewResponse(BaseModel):
     duration_ms: int | None
     created_at: str
     report_text: str | None = None
+    source_code: str | None = None
     issues: list[IssueResponse] = []
 
 
@@ -45,9 +47,12 @@ class ReviewResponse(BaseModel):
 @router.get("", response_model=list[ReviewResponse])
 async def list_reviews(db: DBSessionDep) -> list[ReviewResponse]:
     result = await db.execute(
-        select(Review).order_by(Review.created_at.desc()).limit(50)
+        select(Review)
+        .options(selectinload(Review.issues))
+        .order_by(Review.created_at.desc())
+        .limit(50)
     )
-    return [_to_response(r) for r in result.scalars()]
+    return [_to_response(r, list(r.issues)) for r in result.scalars()]
 
 
 @router.post("", status_code=status.HTTP_202_ACCEPTED)
@@ -104,6 +109,7 @@ def _to_response(review: Review, issues: list[Issue] | None = None) -> ReviewRes
         duration_ms=review.duration_ms,
         created_at=review.created_at.isoformat(),
         report_text=review.report_text,
+        source_code=review.source_code,
         issues=[
             IssueResponse(
                 id=str(i.id),

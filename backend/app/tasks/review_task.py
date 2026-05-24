@@ -9,7 +9,6 @@
 """
 
 import json
-import re
 import time
 import uuid
 
@@ -18,8 +17,11 @@ from app.agents.state import IssueOutput, ReviewState
 from app.agents.synthesis_agent import deduplicate_issues
 from app.core.dependencies import get_redis, get_session_factory
 from app.core.logging import get_logger
-from app.models.issue import Issue
+from app.models.issue import Issue, IssueSeverity
+from app.models.repository import Repository
 from app.models.review import Review, ReviewStatus
+from app.platform.adapters.github import GitHubAdapter
+from app.rag.retriever import retrieve_context
 
 log = get_logger(__name__)
 
@@ -44,10 +46,13 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
             review.status = ReviewStatus.running
             await db.commit()
 
+            # P2: Webhook 模式注入 RAG 上下文，paste 模式（repository_id=None）返回 ""
+            rag_context = await retrieve_context(db, source_code, review.repository_id)
+
             initial_state: ReviewState = {
                 "source_code": source_code,
                 "language": language,
-                "rag_context": "",   # paste 模式无仓库上下文
+                "rag_context": rag_context,
                 "issues": [],
                 "report_text": "",
                 "error": None,
@@ -121,6 +126,9 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
             }))
             log.info("review_done", review_id=review_id, issues=len(issues), ms=duration_ms)
 
+            # P1: Webhook 模式回调 GitHub（paste 模式无 head_sha，静默跳过）
+            await _maybe_notify_github(db, review, issues, report_text)
+
         except Exception as exc:
             log.exception("review_failed", review_id=review_id)
             try:
@@ -130,20 +138,67 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
             except Exception:
                 pass
             await redis.publish(channel, json.dumps({"type": "error", "message": str(exc)}))
+            await _maybe_notify_github(db, review, [], "", failed=True)
 
 
-# ── 遗留：v0.1.0 单节点解析函数，供单元测试继续使用 ─────────────────────────────
+# ── GitHub 回调 ───────────────────────────────────────────────────────────────
 
-def _parse_issues(text: str) -> list[IssueOutput]:
-    """从 LLM 响应末尾的 ```json 块中提取结构化 issue 列表（v0.1.0 遗留）。"""
-    matches = re.findall(r"```json\s*([\s\S]*?)\s*```", text)
-    if not matches:
-        log.warning("no_json_block_in_response", preview=text[-300:])
-        return []
+def _format_pr_comment(issues: list[IssueOutput], report_text: str, duration_ms: int) -> str:
+    """将审查结果格式化为 GitHub PR 评论 Markdown。"""
+    critical = sum(1 for i in issues if i.severity == IssueSeverity.critical)
+    warnings  = sum(1 for i in issues if i.severity == IssueSeverity.warning)
+
+    header = (
+        f"## 🔍 CodeSentinel Review\n\n"
+        f"**{len(issues)} issues found** "
+        f"({critical} critical · {warnings} warning · "
+        f"{len(issues) - critical - warnings} suggestion) "
+        f"· {duration_ms / 1000:.1f}s\n\n"
+    )
+    body = report_text if report_text else "_No synthesis report generated._"
+    return header + body + "\n\n---\n*Powered by CodeSentinel — Multi-Agent AI Code Review*"
+
+
+async def _maybe_notify_github(
+    db,
+    review: Review,
+    issues: list[IssueOutput],
+    report_text: str,
+    *,
+    failed: bool = False,
+) -> None:
+    """审查完成后回调 GitHub Status Check 和 PR 评论。
+
+    paste 模式（head_sha=None）和非 GitHub 仓库静默跳过。
+    回调失败只记录警告，不向上抛出（避免污染主任务状态）。
+    """
+    if not review.head_sha or not review.repository_id:
+        return
+
     try:
-        raw = json.loads(matches[-1])
-        items = raw if isinstance(raw, list) else raw.get("issues", [])
-        return [IssueOutput.model_validate(item) for item in items]
-    except Exception as exc:
-        log.warning("issue_parse_error", error=str(exc), preview=matches[-1][:300])
-        return []
+        repo: Repository | None = await db.get(Repository, review.repository_id)
+        if repo is None or repo.platform.value != "github":
+            return
+
+        adapter = GitHubAdapter()
+        owner, repo_name = GitHubAdapter.parse_repo_url(repo.url)
+
+        # Status Check
+        if failed:
+            state, desc = "failure", "CodeSentinel review failed"
+        else:
+            critical_count = sum(1 for i in issues if i.severity == IssueSeverity.critical)
+            state = "failure" if critical_count > 0 else "success"
+            desc = (
+                f"Found {len(issues)} issues ({critical_count} critical)"
+                if issues else "No issues found"
+            )
+        await adapter.set_commit_status(owner, repo_name, review.head_sha, state, desc)
+
+        # PR 评论（仅成功路径且有内容时发布）
+        if not failed and review.pr_number and (issues or report_text):
+            comment = _format_pr_comment(issues, report_text, review.duration_ms or 0)
+            await adapter.post_review_comment(owner, repo_name, review.pr_number, comment)
+
+    except Exception:
+        log.warning("github_notify_failed", review_id=str(review.id))

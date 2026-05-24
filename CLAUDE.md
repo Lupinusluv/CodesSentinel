@@ -134,14 +134,17 @@ cd backend && pytest tests/ -v
 # 只跑单元测试
 pytest tests/unit/ -v
 
-# 数据库迁移（Alembic，后续加入）
-alembic upgrade head
+# 数据库迁移（在 backend/ 目录下运行）
+cd backend
+alembic upgrade head              # 应用所有迁移（首次初始化也用这个）
+alembic revision --autogenerate -m "描述"   # 新增字段后自动生成迁移文件
+alembic downgrade -1              # 回滚最近一次迁移
 
 # 生成评测集
 python scripts/seed_eval_set.py
 
 # 前端类型检查
-cd frontend && npm run type-check
+cd frontend && npx tsc --noEmit
 
 # 构建生产镜像
 docker compose build

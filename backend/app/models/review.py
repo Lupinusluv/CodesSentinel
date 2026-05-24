@@ -35,6 +35,7 @@ class Review(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     language: Mapped[str | None] = mapped_column(String(32), nullable=True)
     source_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    head_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)
     report_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 

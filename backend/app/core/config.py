@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     redis_url: str = "redis://localhost:6379/0"
 
+    github_token: str = ""           # Personal Access Token / GitHub App token
     github_webhook_secret: str = ""
     gitlab_webhook_secret: str = ""
     gitee_webhook_secret: str = ""

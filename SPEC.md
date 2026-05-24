@@ -67,9 +67,9 @@
 
 1. **GitHub Webhook 集成**（`platform/base.py` + `adapters/github.py` + `webhooks.py`）— 面试最高频追问点
 2. **Repositories API 真实 CRUD**（`repositories.py`）— 前端 Repos 页解锁
-3. **Metrics API 真实查询**（`metrics.py`）— 前端 Metrics 页解锁
-4. **评测集 + 测试补全**（`seed_eval_set.py` + tests/）— 第4个月核心
-5. **AutoFix + Sandbox** — 最后做，功能复杂，可作为加分项
+3. **评测集**（`seed_eval_set.py` + 跑一次 P/R 数字）— **提前到 GitHub 集成完成后立刻做**，"精确率 82% vs baseline" 比任何功能描述都有杀伤力
+4. **Metrics API 真实查询**（`metrics.py`）— 有了评测数据后顺手实现
+5. **AutoFix**（AST 语法校验版，不做 Docker 沙箱）— 最后做，可作为加分项
 
 ---
 
@@ -77,10 +77,10 @@
 
 | 功能 | 描述 | 状态 |
 |------|------|------|
-| 多平台接入 | GitHub / GitLab / Gitee，统一适配器接口 | ⏳ 适配器未实现 |
+| 多平台接入 | GitHub Webhook 完整实现；GitPlatformAdapter 接口支持多平台扩展 | ⏳ 适配器未实现 |
 | 多 Agent 并行审查 | 安全/性能/规范三路并行，最终聚合 | ✅ 已完成 |
-| RAG 代码库理解 | AST 级别分块，向量检索注入上下文 | ✅ 已完成 |
-| 自动修复 | 生成 Patch → 沙箱执行验证 → 展示 diff | ⏳ 未实现 |
+| RAG 代码库理解 | AST 分块 + pgvector 检索；Webhook 模式注入仓库上下文，paste 模式无 RAG | ✅ 管道已完成，Webhook 集成后生效 |
+| 自动修复 | 生成 Patch → AST 语法校验 → 展示 diff（不做 Docker 沙箱执行） | ⏳ 未实现 |
 | 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 | ✅ 已完成 |
 | Web Dashboard | 审查历史、统计指标、代码 diff 查看器 | ✅ 已完成 |
 | 可量化指标 | 检测精确率、响应延迟、修复成功率 | ⏳ 未实现 |
@@ -96,8 +96,8 @@
 | LLM | DeepSeek API（主）/ 兼容 OpenAI 格式 |
 | Agent 框架 | LangGraph + LangChain |
 | 代码解析 | Python `ast` + `tree-sitter`（多语言 AST 分块） |
-| 向量数据库 | ChromaDB（本地开发）/ Qdrant（云部署可选） |
-| 代码沙箱 | Docker exec / e2b 沙箱 API |
+| 向量检索 | pgvector（集成在 PostgreSQL，余弦相似度）|
+| 代码沙箱 | AST 语法校验（ast.parse / tsc --noEmit），不做 Docker exec |
 
 ### 基础设施层
 
@@ -113,9 +113,8 @@
 | 组件 | 说明 |
 |------|------|
 | `GitPlatformAdapter`（抽象基类） | 统一操作接口：获取 PR diff、发布评论、设置 Status Check |
-| `GitHubAdapter` | GitHub REST API + Webhook |
-| `GitLabAdapter` | GitLab API v4 + Webhook，支持私有部署 |
-| `GiteeAdapter` | Gitee API v5 + Webhook |
+| `GitHubAdapter` | GitHub REST API + Webhook，**完整实现** |
+| GitLab / Gitee | 接口抽象支持扩展，按同一接口实现即可；面试展示平台无关的设计能力 |
 
 ### 前端层
 
@@ -127,7 +126,7 @@
 
 ### 容器化
 
-Docker Compose 编排全部服务：PostgreSQL + Redis + ChromaDB + Backend + Frontend
+Docker Compose 编排全部服务：PostgreSQL（含 pgvector 扩展）+ Redis + Backend + Frontend
 
 ---
 
