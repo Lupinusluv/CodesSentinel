@@ -3,9 +3,10 @@
 GitHub 事件流程：
   1. 验证 X-Hub-Signature-256（HMAC-SHA256）
   2. 只处理 pull_request 事件，action 为 opened / synchronize / reopened
-  3. 写入 Review 记录（status=pending）
-  4. 入队 ARQ 任务（run_review_task）
-  5. 返回 202 Accepted（GitHub 要求 10 秒内响应）
+  3. 设置 commit Status Check 为 pending
+  4. 写入 Review 记录（status=pending，source_code 暂空）
+  5. 入队 ARQ 任务，立刻返回 202 Accepted（<100ms，不在此拉 diff）
+  6. diff 拉取由 ARQ Worker 在 run_review_task 内部执行
 
 其他平台（GitLab / Gitee）接口结构相同，适配器实现后可直接接入。
 """
@@ -17,7 +18,7 @@ from fastapi import APIRouter, Header, HTTPException, Request, status
 from app.core.config import get_settings
 from app.core.dependencies import DBSessionDep, get_arq_pool
 from app.core.logging import get_logger
-from app.models.repository import Platform, Repository
+from app.models.repository import Repository
 from app.models.review import Review, ReviewStatus
 from app.platform.adapters.github import GitHubAdapter
 from app.platform.base import GitPlatformAdapter
@@ -34,17 +35,18 @@ async def _enqueue_review(
     db: DBSessionDep,
     repository: Repository,
     pr_number: int,
-    pr_diff: str,
     language: str,
     head_sha: str,
 ) -> Review:
-    """创建 Review 记录并入队 ARQ 任务，返回新建的 Review。"""
+    """创建 Review 记录并入队 ARQ 任务，立刻返回，不阻塞 Webhook 响应。
+
+    source_code 暂不填写，由 review_task 内部拉取 diff 后写入。
+    """
     review = Review(
         repository_id=repository.id,
         pr_number=pr_number,
         status=ReviewStatus.pending,
         language=language,
-        source_code=pr_diff,
         head_sha=head_sha,
     )
     db.add(review)
@@ -52,8 +54,8 @@ async def _enqueue_review(
     await db.refresh(review)
 
     arq = await get_arq_pool()
-    # head_sha 存在 review 里，review_task 完成后可通过 DB 读取再回调 Status Check
-    await arq.enqueue_job("run_review_task", str(review.id), pr_diff, language)
+    # source_code 传 "" — review_task 检测到空值后自行从 GitHub 拉 diff
+    await arq.enqueue_job("run_review_task", str(review.id), "", language)
     log.info(
         "review_enqueued",
         review_id=str(review.id),
@@ -122,10 +124,10 @@ async def github_webhook(
         log.warning("webhook_repo_not_registered", url=repo_url)
         return {"status": "ignored", "reason": "repository not registered"}
 
-    # ── 5. 立刻设置 pending Status Check ─────────────────────────────────────
-    adapter = GitHubAdapter()
+    # ── 5. 立刻设置 pending Status Check（尽力而为，失败不阻塞入队）────────────
     owner, repo_name = GitHubAdapter.parse_repo_url(repo_url)
     try:
+        adapter = GitHubAdapter()
         await adapter.set_commit_status(
             owner, repo_name, head_sha,
             state="pending",
@@ -134,14 +136,8 @@ async def github_webhook(
     except Exception:
         log.warning("github_status_pending_failed", sha=head_sha[:8])
 
-    # ── 6. 拉取 diff 并入队 ───────────────────────────────────────────────────
-    try:
-        pr_diff = await adapter.get_pr_diff(owner, repo_name, pr_number)
-    except Exception as exc:
-        log.error("github_get_diff_failed", pr=pr_number, error=str(exc))
-        raise HTTPException(status_code=502, detail=f"Failed to fetch PR diff: {exc}")
-
-    await _enqueue_review(db, repository, pr_number, pr_diff, language, head_sha)
+    # ── 6. 写记录 + 入队，立刻返回 202（diff 由 Worker 异步拉取）────────────────
+    await _enqueue_review(db, repository, pr_number, language, head_sha)
 
     return {"status": "accepted", "pr": pr_number}
 

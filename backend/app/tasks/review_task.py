@@ -46,7 +46,11 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
             review.status = ReviewStatus.running
             await db.commit()
 
-            # P2: Webhook 模式注入 RAG 上下文，paste 模式（repository_id=None）返回 ""
+            # Webhook 模式：source_code 为空，在 Worker 内拉 diff（避免 Webhook handler 超时）
+            if not source_code and review.repository_id and review.pr_number:
+                source_code = await _fetch_pr_diff(db, review)
+
+            # Webhook 模式注入 RAG 上下文，paste 模式（repository_id=None）返回 ""
             rag_context = await retrieve_context(db, source_code, review.repository_id)
 
             initial_state: ReviewState = {
@@ -139,6 +143,29 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                 pass
             await redis.publish(channel, json.dumps({"type": "error", "message": str(exc)}))
             await _maybe_notify_github(db, review, [], "", failed=True)
+
+
+# ── Webhook 模式：在 Worker 内拉 PR diff ─────────────────────────────────────
+
+async def _fetch_pr_diff(db, review: Review) -> str:
+    """从 GitHub 拉取 PR diff，写入 review.source_code 供后续 Source Code Tab 展示。
+
+    拉取失败向上抛出，由 run_review_task 的 except 块统一处理（标记 failed）。
+    """
+    repo: Repository | None = await db.get(Repository, review.repository_id)
+    if repo is None:
+        raise RuntimeError(f"Repository {review.repository_id} not found in DB")
+
+    adapter = GitHubAdapter()
+    owner, repo_name = GitHubAdapter.parse_repo_url(repo.url)
+    diff = await adapter.get_pr_diff(owner, repo_name, review.pr_number)
+
+    # 持久化到 DB，ReviewDetail 的 Source Code Tab 可直接展示
+    review.source_code = diff
+    await db.commit()
+
+    log.info("pr_diff_fetched", review_id=str(review.id), chars=len(diff))
+    return diff
 
 
 # ── GitHub 回调 ───────────────────────────────────────────────────────────────

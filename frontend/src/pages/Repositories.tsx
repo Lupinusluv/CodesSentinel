@@ -1,26 +1,68 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { repositoryApi, type Repository } from '../lib/api'
 
 const PLATFORMS = ['github', 'gitlab', 'gitee'] as const
 type Platform = typeof PLATFORMS[number]
-
-const PLATFORM_ICONS: Record<Platform, string> = {
-  github: '🐙',
-  gitlab: '🦊',
-  gitee:  '🟠',
-}
 
 export function Repositories() {
   const [platform, setPlatform] = useState<Platform>('github')
   const [url, setUrl]           = useState('')
   const [secret, setSecret]     = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError]   = useState<string | null>(null)
+
+  const [repos, setRepos]       = useState<Repository[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [indexing, setIndexing] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    repositoryApi.list()
+      .then(r => setRepos(r.data))
+      .catch(() => {/* silently ignore, show empty list */})
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleCreate() {
+    if (!url.trim() || !secret.trim()) return
+    setSubmitting(true)
+    setFormError(null)
+    try {
+      const res = await repositoryApi.create({ platform, url: url.trim(), webhook_secret: secret.trim() })
+      setRepos(prev => [res.data, ...prev])
+      setUrl('')
+      setSecret('')
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setFormError(msg ?? '注册失败，请检查 URL 格式')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('确认删除该仓库？所有 CodeChunk 也会一并清除。')) return
+    try {
+      await repositoryApi.delete(id)
+      setRepos(prev => prev.filter(r => r.id !== id))
+    } catch {
+      alert('删除失败')
+    }
+  }
+
+  async function handleIndex(id: string) {
+    setIndexing(prev => ({ ...prev, [id]: true }))
+    try {
+      await repositoryApi.triggerIndex(id)
+      // Optimistic: mark indexed_at as pending; real value comes after task finishes
+    } catch {
+      alert('触发索引失败')
+    } finally {
+      setIndexing(prev => ({ ...prev, [id]: false }))
+    }
+  }
 
   return (
     <div className="flex-1 flex flex-col p-6 gap-6 overflow-auto">
-      {/* Coming soon banner */}
-      <div className="rounded-lg bg-amber-950 border border-amber-700 px-4 py-3 text-amber-300 text-sm">
-        仓库 Webhook 集成尚在开发中（后端 API v0.3 规划）。表单已就绪，提交后会显示 501 提示。
-      </div>
-
       {/* Register form */}
       <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 max-w-lg flex flex-col gap-4">
         <h2 className="text-base font-semibold text-white">注册 Git 仓库</h2>
@@ -36,7 +78,7 @@ export function Repositories() {
                   : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
               }`}
             >
-              {PLATFORM_ICONS[p]} {p}
+              {p}
             </button>
           ))}
         </div>
@@ -46,7 +88,7 @@ export function Repositories() {
           <input
             type="url"
             value={url}
-            onChange={e => setUrl(e.target.value)}
+            onChange={e => { setUrl(e.target.value); setFormError(null) }}
             placeholder="https://github.com/owner/repo"
             className="bg-slate-800 text-slate-200 text-sm rounded px-3 py-2 border border-slate-700 focus:outline-none focus:border-slate-500"
           />
@@ -63,17 +105,60 @@ export function Repositories() {
           />
         </div>
 
+        {formError && (
+          <p className="text-red-400 text-xs">{formError}</p>
+        )}
+
         <button
-          disabled={!url.trim() || !secret.trim()}
+          disabled={!url.trim() || !secret.trim() || submitting}
           className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
-          onClick={() => alert('后端 API 尚未实现 (501)')}
+          onClick={handleCreate}
         >
-          注册仓库
+          {submitting ? '注册中…' : '注册仓库'}
         </button>
       </div>
 
-      {/* Placeholder list */}
-      <div className="text-slate-500 text-sm">已注册仓库将显示在此处…</div>
+      {/* Repo list */}
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-slate-300">已注册仓库</h2>
+        {loading ? (
+          <p className="text-slate-500 text-sm">加载中…</p>
+        ) : repos.length === 0 ? (
+          <p className="text-slate-500 text-sm">暂无已注册仓库</p>
+        ) : (
+          repos.map(repo => (
+            <div
+              key={repo.id}
+              className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 flex items-center gap-4"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate">{repo.url}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {repo.indexed_at
+                    ? `已索引 · ${new Date(repo.indexed_at).toLocaleString('zh-CN')}`
+                    : '未索引'}
+                </p>
+              </div>
+              <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">
+                {repo.platform}
+              </span>
+              <button
+                disabled={indexing[repo.id]}
+                onClick={() => handleIndex(repo.id)}
+                className="text-xs px-3 py-1.5 rounded bg-emerald-800 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-emerald-200 transition-colors shrink-0"
+              >
+                {indexing[repo.id] ? '入队中…' : '触发索引'}
+              </button>
+              <button
+                onClick={() => handleDelete(repo.id)}
+                className="text-xs px-3 py-1.5 rounded bg-red-900 hover:bg-red-800 text-red-300 transition-colors shrink-0"
+              >
+                删除
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   )
 }

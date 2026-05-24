@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, field_validator
 from sqlalchemy import select
 
-from app.core.dependencies import DBSessionDep
+from app.core.dependencies import DBSessionDep, get_arq_pool
 from app.core.logging import get_logger
 from app.models.repository import Platform, Repository
 
@@ -70,6 +70,23 @@ async def create_repository(body: CreateRepositoryRequest, db: DBSessionDep) -> 
     await db.refresh(repo)
     log.info("repository_created", id=str(repo.id), url=repo.url)
     return _to_response(repo)
+
+
+@router.post("/{repository_id}/index", status_code=status.HTTP_202_ACCEPTED)
+async def trigger_index(repository_id: str, db: DBSessionDep) -> dict[str, str]:
+    try:
+        uid = uuid.UUID(repository_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid repository_id format")
+
+    repo = await db.get(Repository, uid)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository not found")
+
+    arq = await get_arq_pool()
+    await arq.enqueue_job("run_index_task", str(uid))
+    log.info("index_enqueued", repository_id=str(uid))
+    return {"status": "accepted", "repository_id": str(uid)}
 
 
 @router.delete("/{repository_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -30,6 +30,8 @@ export const repositoryApi = {
   create: (payload: { platform: string; url: string; webhook_secret: string }) =>
     http.post<Repository>('/repositories', payload),
   delete: (id: string) => http.delete(`/repositories/${id}`),
+  triggerIndex: (id: string) =>
+    http.post<{ status: string; repository_id: string }>(`/repositories/${id}/index`),
 }
 
 export interface MetricsSummary {
