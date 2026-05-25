@@ -9,11 +9,12 @@ services:
       - "5432:5432"
     volumes:
       - .docker-data/postgres:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/10-extensions.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U codessentinel"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -25,7 +26,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   backend:
     build: ./backend
@@ -35,12 +36,20 @@ services:
       - ./backend:/app
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://codessentinel:codessentinel@postgres:5432/codessentinel
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
 
   worker:
     build: ./backend
@@ -48,12 +57,13 @@ services:
       - ./backend:/app
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://codessentinel:codessentinel@postgres:5432/codessentinel
+      REDIS_URL: redis://redis:6379/0
     depends_on:
-      postgres:
+      backend:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: arq app.tasks.worker.WorkerSettings
+    command: ["arq", "app.tasks.worker.WorkerSettings"]
 
   frontend:
     build: ./frontend
@@ -62,8 +72,10 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    env_file:
-      - .env
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     depends_on:
       - backend
-    command: npm run dev -- --host
