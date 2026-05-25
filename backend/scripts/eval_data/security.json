@@ -10,7 +10,7 @@
           "severity": "critical",
           "line_start": 6,
           "line_end": 6,
-          "keywords": ["sql injection", "f-string", "parameterized", "user input", "format string"]
+          "keywords": ["sql injection", "SQL injection", "SQLi", "SQL-injection", "f-string", "fstring", "formatted string", "string formatting", "parameterized", "parameterized query", "parameterization", "prepared statement", "user input", "untrusted input", "unsanitized input", "format string"]
         }
       ]
     },
@@ -24,14 +24,14 @@
           "severity": "critical",
           "line_start": 2,
           "line_end": 2,
-          "keywords": ["sql injection", "concatenation", "parameterized", "user input"]
+          "keywords": ["sql injection", "SQL injection", "SQLi", "SQL-injection", "concatenation", "concatenated", "concatenating", "string concatenation", "parameterized", "parameterized query", "parameterization", "prepared statement", "user input", "untrusted input", "unsanitized input"]
         },
         {
           "category": "security",
           "severity": "critical",
           "line_start": 7,
           "line_end": 7,
-          "keywords": ["sql injection", "concatenation", "parameterized", "user input"]
+          "keywords": ["sql injection", "SQL injection", "SQLi", "SQL-injection", "concatenation", "concatenated", "concatenating", "string concatenation", "parameterized", "parameterized query", "parameterization", "prepared statement", "user input", "untrusted input", "unsanitized input"]
         }
       ]
     },
@@ -45,7 +45,7 @@
           "severity": "critical",
           "line_start": 5,
           "line_end": 7,
-          "keywords": ["command injection", "shell=True", "shell injection", "user input", "arbitrary command"]
+          "keywords": ["command injection", "command-injection", "shell injection", "shell=True", "user input", "untrusted input", "unsanitized input", "arbitrary command", "arbitrary commands", "execute arbitrary"]
         }
       ]
     },
@@ -59,7 +59,7 @@
           "severity": "critical",
           "line_start": 5,
           "line_end": 6,
-          "keywords": ["command injection", "os.system", "shell", "user input", "arbitrary command"]
+          "keywords": ["command injection", "command-injection", "shell injection", "os.system", "shell", "user input", "untrusted input", "unsanitized input", "arbitrary command", "arbitrary commands", "execute arbitrary"]
         }
       ]
     },
@@ -73,7 +73,7 @@
           "severity": "critical",
           "line_start": 7,
           "line_end": 7,
-          "keywords": ["path traversal", "directory traversal", "sanitize", "../", "resolve", "is_relative_to"]
+          "keywords": ["path traversal", "path-traversal", "directory traversal", "directory-traversal", "sanitize", "sanitization", "sanitizing", "../", "resolve", "resolved", "resolving", "is_relative_to"]
         }
       ]
     },
@@ -87,7 +87,7 @@
           "severity": "critical",
           "line_start": 7,
           "line_end": 7,
-          "keywords": ["path traversal", "resolve", "is_relative_to", "directory traversal", "../"]
+          "keywords": ["path traversal", "path-traversal", "directory traversal", "directory-traversal", "resolve", "resolved", "resolving", "is_relative_to", "../"]
         }
       ]
     },
@@ -101,7 +101,7 @@
           "severity": "critical",
           "line_start": 5,
           "line_end": 5,
-          "keywords": ["hardcoded", "credential", "secret", "environment variable", "password", "plaintext"]
+          "keywords": ["hardcoded", "hard-coded", "hard coded", "hardcode", "credential", "credentials", "secret", "secrets", "environment variable", "environment variables", "env var", "password", "passwords", "plaintext", "plain text", "plain-text"]
         }
       ]
     },
@@ -115,7 +115,7 @@
           "severity": "critical",
           "line_start": 3,
           "line_end": 3,
-          "keywords": ["hardcoded", "api key", "secret", "environment variable", "credential", "token"]
+          "keywords": ["hardcoded", "hard-coded", "hard coded", "hardcode", "api key", "API key", "api keys", "API keys", "secret", "secrets", "environment variable", "environment variables", "env var", "credential", "credentials", "token", "tokens"]
         }
       ]
     },
@@ -129,7 +129,7 @@
           "severity": "critical",
           "line_start": 12,
           "line_end": 12,
-          "keywords": ["insecure deserialization", "pickle", "arbitrary code", "user input", "remote code execution"]
+          "keywords": ["insecure deserialization", "unsafe deserialization", "deserialization", "deserialize", "pickle", "pickle.loads", "pickled", "arbitrary code", "arbitrary code execution", "code execution", "user input", "untrusted input", "remote code execution", "RCE"]
         }
       ]
     },
@@ -143,7 +143,7 @@
           "severity": "critical",
           "line_start": 10,
           "line_end": 10,
-          "keywords": ["yaml.load", "safe_load", "SafeLoader", "arbitrary code", "deserialization", "Loader"]
+          "keywords": ["yaml.load", "yaml.safe_load", "safe_load", "SafeLoader", "unsafe load", "arbitrary code", "arbitrary code execution", "code execution", "deserialization", "deserialize", "Loader"]
         }
       ]
     },
@@ -157,7 +157,7 @@
           "severity": "critical",
           "line_start": 9,
           "line_end": 10,
-          "keywords": ["xss", "cross-site scripting", "escape", "sanitize", "user input", "inject", "html"]
+          "keywords": ["xss", "XSS", "cross-site scripting", "cross site scripting", "escape", "escaping", "escaped", "sanitize", "sanitization", "sanitizing", "user input", "untrusted input", "inject", "injection", "injected", "html", "HTML"]
         }
       ]
     },
@@ -171,7 +171,7 @@
           "severity": "critical",
           "line_start": 12,
           "line_end": 12,
-          "keywords": ["ssrf", "server-side request forgery", "whitelist", "user-controlled url", "internal network"]
+          "keywords": ["ssrf", "SSRF", "server-side request forgery", "server side request forgery", "whitelist", "allowlist", "white-list", "user-controlled url", "user-controlled URL", "user-controlled", "internal network", "internal", "internal services"]
         }
       ]
     },
@@ -185,7 +185,7 @@
           "severity": "critical",
           "line_start": 7,
           "line_end": 7,
-          "keywords": ["cryptographically secure", "secrets", "random", "predictable", "token", "insecure"]
+          "keywords": ["cryptographically secure", "cryptographically-secure", "CSPRNG", "secrets", "secrets module", "random", "predictable", "predictability", "token", "tokens", "insecure", "insecurity"]
         }
       ]
     },
@@ -199,7 +199,7 @@
           "severity": "warning",
           "line_start": 2,
           "line_end": 6,
-          "keywords": ["timing attack", "hmac.compare_digest", "constant time", "early exit", "side channel"]
+          "keywords": ["timing attack", "timing-attack", "timing attacks", "hmac.compare_digest", "compare_digest", "constant time", "constant-time", "early exit", "early return", "short-circuit", "side channel", "side-channel"]
         }
       ]
     },
@@ -213,7 +213,7 @@
           "severity": "warning",
           "line_start": 10,
           "line_end": 10,
-          "keywords": ["open redirect", "redirect", "user input", "external", "validate", "whitelist"]
+          "keywords": ["open redirect", "open-redirect", "redirect", "redirection", "user input", "untrusted input", "external", "external URL", "external site", "validate", "validation", "whitelist", "allowlist"]
         }
       ]
     },
@@ -227,7 +227,7 @@
           "severity": "critical",
           "line_start": 10,
           "line_end": 10,
-          "keywords": ["xxe", "xml external entity", "no_network", "resolve_entities", "injection", "entity"]
+          "keywords": ["xxe", "XXE", "xml external entity", "XML external entity", "external entity", "no_network", "resolve_entities", "injection", "inject", "entity", "entities"]
         }
       ]
     },
@@ -241,7 +241,7 @@
           "severity": "critical",
           "line_start": 9,
           "line_end": 9,
-          "keywords": ["zip slip", "path traversal", "directory traversal", "resolve", "../", "outside"]
+          "keywords": ["zip slip", "zip-slip", "ZipSlip", "path traversal", "path-traversal", "directory traversal", "directory-traversal", "resolve", "resolved", "../", "outside", "outside the directory", "outside of"]
         }
       ]
     },
@@ -255,7 +255,7 @@
           "severity": "critical",
           "line_start": 6,
           "line_end": 6,
-          "keywords": ["md5", "bcrypt", "argon2", "salt", "password hash", "insecure hash", "broken"]
+          "keywords": ["md5", "MD5", "bcrypt", "argon2", "Argon2", "salt", "salted", "salting", "password hash", "password hashing", "hashing password", "insecure hash", "weak hash", "broken hash", "broken"]
         }
       ]
     }

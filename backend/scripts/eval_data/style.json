@@ -10,14 +10,14 @@
           "severity": "warning",
           "line_start": 4,
           "line_end": 4,
-          "keywords": ["bare except", "BaseException", "KeyboardInterrupt", "specific exception", "except clause"]
+          "keywords": ["bare except", "naked except", "empty except", "BaseException", "KeyboardInterrupt", "specific exception", "except clause", "except statement", "except block", "broad except", "catches all"]
         },
         {
           "category": "style",
           "severity": "warning",
           "line_start": 14,
           "line_end": 14,
-          "keywords": ["bare except", "BaseException", "KeyboardInterrupt", "specific exception", "except clause"]
+          "keywords": ["bare except", "naked except", "empty except", "BaseException", "KeyboardInterrupt", "specific exception", "except clause", "except statement", "except block", "broad except", "catches all"]
         }
       ]
     },
@@ -31,7 +31,7 @@
           "severity": "warning",
           "line_start": 11,
           "line_end": 12,
-          "keywords": ["swallowed exception", "silent failure", "log", "raise", "bare pass", "ignored exception"]
+          "keywords": ["swallowed exception", "swallow", "swallows", "swallowing", "silent failure", "silently", "silently fails", "log", "logging", "raise", "bare pass", "empty pass", "pass statement", "ignored exception", "ignore", "ignores", "ignoring", "discard", "discards", "discarded"]
         }
       ]
     },
@@ -45,7 +45,7 @@
           "severity": "suggestion",
           "line_start": 3,
           "line_end": 8,
-          "keywords": ["magic number", "constant", "named constant", "readability", "maintainability", "literal"]
+          "keywords": ["magic number", "magic numbers", "hardcoded number", "hardcoded value", "constant", "constants", "named constant", "named constants", "readability", "readable", "maintainability", "maintainable", "literal", "literals", "numeric literal"]
         }
       ]
     },
@@ -59,7 +59,7 @@
           "severity": "suggestion",
           "line_start": 2,
           "line_end": 9,
-          "keywords": ["deep nesting", "early return", "guard clause", "nesting", "complexity", "flatten"]
+          "keywords": ["deep nesting", "deeply nested", "deeply-nested", "nested", "nesting", "early return", "early returns", "return early", "guard clause", "guard clauses", "complexity", "complex", "cyclomatic", "flatten", "flattening", "happy path"]
         }
       ]
     },
@@ -73,7 +73,7 @@
           "severity": "warning",
           "line_start": 1,
           "line_end": 1,
-          "keywords": ["mutable default", "default argument", "None", "shared state", "list", "evaluated once"]
+          "keywords": ["mutable default", "mutable defaults", "mutable default argument", "mutable default arguments", "default argument", "default arguments", "default value", "None", "shared state", "shared", "list", "evaluated once", "evaluated at definition", "module-level"]
         }
       ]
     },
@@ -87,7 +87,7 @@
           "severity": "suggestion",
           "line_start": 2,
           "line_end": 4,
-          "keywords": ["is None", "== None", "identity", "PEP 8", "comparison", "is not None"]
+          "keywords": ["is None", "== None", "!= None", "is not None", "identity", "identity comparison", "identity check", "PEP 8", "PEP8", "PEP-8", "comparison", "compare", "comparing"]
         }
       ]
     },
@@ -101,7 +101,7 @@
           "severity": "suggestion",
           "line_start": 4,
           "line_end": 6,
-          "keywords": ["boolean parameter", "flag argument", "enum", "options", "readability", "boolean trap"]
+          "keywords": ["boolean parameter", "boolean parameters", "boolean argument", "boolean arguments", "bool parameter", "bool argument", "flag argument", "flag arguments", "flag parameter", "flag parameters", "enum", "Enum", "enums", "options", "option", "readability", "readable", "boolean trap"]
         }
       ]
     },
@@ -115,7 +115,7 @@
           "severity": "suggestion",
           "line_start": 1,
           "line_end": 15,
-          "keywords": ["god function", "single responsibility", "refactor", "too many responsibilities", "separation of concerns", "long function"]
+          "keywords": ["god function", "god method", "god class", "single responsibility", "single-responsibility", "SRP", "refactor", "refactoring", "extract", "split", "too many responsibilities", "multiple responsibilities", "many responsibilities", "separation of concerns", "separation", "long function", "lengthy function", "function too long"]
         }
       ]
     },
@@ -129,7 +129,7 @@
           "severity": "suggestion",
           "line_start": 5,
           "line_end": 5,
-          "keywords": ["unused variable", "dead code", "unnecessary computation", "unreferenced", "never used"]
+          "keywords": ["unused variable", "unused variables", "unused", "unreferenced variable", "unreferenced", "dead code", "dead variable", "dead", "unnecessary computation", "unnecessary", "never used", "not used", "never referenced"]
         }
       ]
     },
@@ -143,7 +143,7 @@
           "severity": "suggestion",
           "line_start": 2,
           "line_end": 10,
-          "keywords": ["type annotation", "type hint", "missing types", "mypy", "Any", "untyped"]
+          "keywords": ["type annotation", "type annotations", "annotation", "annotations", "type hint", "type hints", "type hinting", "typed", "untyped", "missing types", "missing type", "no type", "mypy", "Any"]
         }
       ]
     }

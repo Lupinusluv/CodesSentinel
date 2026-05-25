@@ -1,0 +1,2636 @@
+{
+  "timestamp": "2026-05-25T13:04:55.455963+00:00",
+  "sample_count": 40,
+  "completed_count": 40,
+  "categories": [
+    "perf",
+    "sec",
+    "style"
+  ],
+  "elapsed_seconds": 438.8,
+  "per_sample": [
+    {
+      "id": "sec_sql_inject_fstring_001",
+      "category": "sec",
+      "elapsed_s": 9.79,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "line_end": 6,
+          "keywords": [
+            "sql injection",
+            "f-string",
+            "parameterized",
+            "user input",
+            "format string"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "SQL injection vulnerability: the username parameter is directly interpolated into the SQL query string without sanitization or parameterization."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "SQL query is built via string interpolation, making the code fragile and hard to maintain when query logic changes."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Loading entire row with SELECT * when only specific columns may be needed."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "SQL injection vulnerability: string interpolation of user input into SQL query. Use parameterized queries instead."
+        }
+      ]
+    },
+    {
+      "id": "sec_sql_inject_concat_002",
+      "category": "sec",
+      "elapsed_s": 12.37,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "line_end": 2,
+          "keywords": [
+            "sql injection",
+            "concatenation",
+            "parameterized",
+            "user input"
+          ]
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "sql injection",
+            "concatenation",
+            "parameterized",
+            "user input"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "description": "SQL injection vulnerability via unsanitized username parameter concatenated directly into query string."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "SQL injection vulnerability via unsanitized role parameter concatenated directly into query string."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "String concatenation in SQL query is fragile and error-prone; use parameterized queries instead."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "String concatenation in SQL query is fragile and error-prone; use parameterized queries instead."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function name 'get_user' is misleading because it queries by username, not a user ID; consider renaming for clarity."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Function name 'get_admin' is misleading because it queries by role, not specifically for admin role; consider renaming for clarity."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "description": "SQL injection vulnerability: string concatenation with user input in query"
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "SQL injection vulnerability: string concatenation with user input in query"
+        }
+      ]
+    },
+    {
+      "id": "sec_cmd_inject_shell_003",
+      "category": "sec",
+      "elapsed_s": 10.58,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 7,
+          "keywords": [
+            "command injection",
+            "shell=True",
+            "shell injection",
+            "user input",
+            "arbitrary command"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection vulnerability via unsanitized host parameter passed to shell=True."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Using shell=True with string interpolation introduces a blocking subprocess call that cannot be efficiently awaited in an async context."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using shell=True with a formatted string containing user input creates a command injection risk and makes the code harder to reason about."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection vulnerability: using shell=True with f-string allows arbitrary command execution via the host parameter."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Using shell=True spawns an extra shell process; prefer subprocess.run with a list of arguments for better performance."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Missing type hints for function parameters and return value; consider adding them for clarity."
+        }
+      ]
+    },
+    {
+      "id": "sec_cmd_inject_ossystem_004",
+      "category": "sec",
+      "elapsed_s": 12.8,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 6,
+          "keywords": [
+            "command injection",
+            "os.system",
+            "shell",
+            "user input",
+            "arbitrary command"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection via unsanitized filename in os.system call."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Command injection via unsanitized filename and width in os.system call."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Using os.system() with a command string constructed from user input is a security risk and makes the code fragile."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Using os.system() with a command string constructed from user input is a security risk and makes the code fragile."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 4,
+          "description": "The function convert_image does not validate the fmt parameter, which could lead to unexpected file extensions or command injection."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "The function resize_image does not validate the width parameter, which could lead to unexpected behavior or errors."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection via unsanitized filename in os.system call"
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Command injection via unsanitized filename and width in os.system call"
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Use of os.system instead of subprocess module for safer command execution"
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Use of os.system instead of subprocess module for safer command execution"
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Using os.system spawns a shell process; consider subprocess.run for better performance and control"
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Using os.system spawns a shell process; consider subprocess.run for better performance and control"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Missing input validation for filename and fmt parameters"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Missing input validation for filename and width parameters"
+        }
+      ]
+    },
+    {
+      "id": "sec_path_traversal_005",
+      "category": "sec",
+      "elapsed_s": 12.39,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "path traversal",
+            "directory traversal",
+            "sanitize",
+            "../",
+            "resolve",
+            "is_relative_to"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability in read_document allows reading arbitrary files via filename containing '../' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Path traversal vulnerability in delete_document allows deleting arbitrary files via filename containing '../' sequences."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "BASE_DIR is a module-level constant but is not named with the conventional ALL_CAPS style for constants."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "read_document does not handle potential file-not-found or permission errors, which could lead to uninformative crashes."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "delete_document does not handle potential file-not-found or permission errors, which could lead to uninformative crashes."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing access to files outside BASE_DIR via '../' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 11,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing deletion of files outside BASE_DIR via '../' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Missing error handling: file may not exist or be unreadable, causing unhandled exception."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "Missing error handling: file may not exist or be undeletable, causing unhandled exception."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "No file size limit: reading arbitrarily large files could cause memory exhaustion."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Unused import: 'os' is imported but could be replaced with pathlib for modern path handling."
+        }
+      ]
+    },
+    {
+      "id": "sec_path_traversal_resolve_006",
+      "category": "sec",
+      "elapsed_s": 10.95,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "path traversal",
+            "resolve",
+            "is_relative_to",
+            "directory traversal",
+            "../"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability allows an attacker to read arbitrary files outside UPLOAD_DIR by supplying a filename containing '../'."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing access to files outside UPLOAD_DIR via '..' components."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing access to files outside UPLOAD_DIR via '..' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Potential symlink attack: file_path.exists() and read_bytes() follow symlinks, which could allow access to sensitive files outside UPLOAD_DIR."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "Redundant existence check: file_path.exists() followed by read_bytes() performs two filesystem calls; consider using try-except with open() to handle missing file in one operation."
+        }
+      ]
+    },
+    {
+      "id": "sec_hardcoded_password_007",
+      "category": "sec",
+      "elapsed_s": 10.34,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": [
+            "hardcoded",
+            "credential",
+            "secret",
+            "environment variable",
+            "password",
+            "plaintext"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 4,
+          "description": "Hardcoded database password in source code allows anyone with access to the repository to compromise the production database."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded database credentials in source code pose a maintainability risk and should be externalized."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded database credentials (host, user, password, dbname) in source code. Use environment variables or a secrets manager."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Hardcoded password 'S3cur3P@ssw0rd!' exposed in plaintext. Store secrets securely."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "Consider using a configuration file or environment variables for database settings instead of module-level constants."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Connection is not closed or used with a context manager; consider using 'with' statement to ensure proper resource cleanup."
+        }
+      ]
+    },
+    {
+      "id": "sec_hardcoded_api_key_008",
+      "category": "sec",
+      "elapsed_s": 12.7,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "line_end": 3,
+          "keywords": [
+            "hardcoded",
+            "api key",
+            "secret",
+            "environment variable",
+            "credential",
+            "token"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded OpenAI API key in source code allows anyone with access to the repository to steal and misuse the key."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded API key in source code is a security risk and makes the code unsafe for version control."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Function lacks error handling for network failures, non-200 responses, or missing keys in the response JSON."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded API key exposed in source code; use environment variables or a secrets manager instead."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "No error handling for HTTP request failures or non-200 responses; may expose sensitive error details or crash."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "No validation of response structure; accessing nested keys without checking may raise KeyError or expose unexpected data."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "No timeout set on HTTP request; could hang indefinitely under network issues."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "Use a constant naming convention like OPENAI_API_KEY but consider loading from environment for security."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Function name 'chat_complete' is vague; consider a more descriptive name like 'get_chat_completion'."
+        }
+      ]
+    },
+    {
+      "id": "sec_insecure_pickle_009",
+      "category": "sec",
+      "elapsed_s": 12.01,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 12,
+          "line_end": 12,
+          "keywords": [
+            "insecure deserialization",
+            "pickle",
+            "arbitrary code",
+            "user input",
+            "remote code execution"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Unsafe deserialization via pickle.loads on attacker-controlled input enables arbitrary code execution."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Using pickle.loads on user-supplied data is dangerous and a well-known anti-pattern; it can execute arbitrary code during deserialization."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Missing error handling for base64.b64decode; invalid base64 input will raise a binascii.Error and return a 500 error."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Unsafe deserialization using pickle.loads on user-controlled input can lead to remote code execution."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Missing validation of base64 input; invalid data will cause an exception."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "pickle.loads is slow and memory-intensive; consider using a safer and faster format like JSON."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Unused import: pickle is only used for insecure deserialization; consider removing if not needed."
+        }
+      ]
+    },
+    {
+      "id": "sec_yaml_unsafe_load_010",
+      "category": "sec",
+      "elapsed_s": 9.41,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "yaml.load",
+            "safe_load",
+            "SafeLoader",
+            "arbitrary code",
+            "deserialization",
+            "Loader"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Unsafe use of yaml.load allows arbitrary code execution via deserialization of untrusted YAML input."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Using yaml.load without a SafeLoader can execute arbitrary code; prefer yaml.safe_load for untrusted input."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Using yaml.load without a safe loader can execute arbitrary code. Use yaml.safe_load instead."
+        }
+      ]
+    },
+    {
+      "id": "sec_xss_template_011",
+      "category": "sec",
+      "elapsed_s": 10.49,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "line_end": 10,
+          "keywords": [
+            "xss",
+            "cross-site scripting",
+            "escape",
+            "sanitize",
+            "user input",
+            "inject",
+            "html"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "User-controlled input is directly interpolated into an HTML template string without sanitization, leading to server-side template injection (SSTI) in Jinja2."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using f-string to build HTML templates with user input enables template injection via render_template_string."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "description": "User input is directly interpolated into an HTML template string, leading to Server-Side Template Injection (SSTI) and Cross-Site Scripting (XSS) vulnerabilities."
+        }
+      ]
+    },
+    {
+      "id": "sec_ssrf_012",
+      "category": "sec",
+      "elapsed_s": 11.19,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 12,
+          "line_end": 12,
+          "keywords": [
+            "ssrf",
+            "server-side request forgery",
+            "whitelist",
+            "user-controlled url",
+            "internal network"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Server-side request forgery (SSRF) vulnerability allows an attacker to make the server send requests to internal or arbitrary external hosts via the 'url' parameter."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Synchronous blocking I/O (requests.get) inside an async Flask view function blocks the event loop under concurrent requests."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Missing validation that the URL scheme is HTTP/HTTPS, which could lead to unexpected behavior with file:// or other schemes."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "The timeout value 10 is a magic number that should be a named constant for clarity and maintainability."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Server-Side Request Forgery (SSRF): user-controlled URL is fetched without validation, allowing access to internal services."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "No URL scheme validation; could allow file:// or other dangerous schemes."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "No connection pooling or session reuse; consider using requests.Session for multiple requests."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Missing error handling for network failures (e.g., timeout, connection error)."
+        }
+      ]
+    },
+    {
+      "id": "sec_weak_random_013",
+      "category": "sec",
+      "elapsed_s": 9.79,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "cryptographically secure",
+            "secrets",
+            "random",
+            "predictable",
+            "token",
+            "insecure"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Session token generated using random.choice is cryptographically insecure and predictable."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using random.choice for token generation is not cryptographically secure."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "The function name generate_reset_link is misleading as it generates a full URL, not just a link."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Use of random.choice() instead of secrets.choice() for generating tokens makes them predictable and insecure for session or password reset tokens."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "User ID is exposed in the reset link URL, which could allow enumeration or manipulation of user accounts."
+        }
+      ]
+    },
+    {
+      "id": "sec_timing_attack_014",
+      "category": "sec",
+      "elapsed_s": 10.45,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 2,
+          "line_end": 6,
+          "keywords": [
+            "timing attack",
+            "hmac.compare_digest",
+            "constant time",
+            "early exit",
+            "side channel"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Timing-unsafe comparison of API keys allows an attacker to brute-force the key character-by-character by measuring response time differences."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "The function manually compares two strings character by character instead of using a direct equality check, which obscures the simple intent."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 1,
+          "description": "Timing attack vulnerability: comparison is not constant-time, allowing attackers to deduce the valid key length and characters by measuring response time."
+        }
+      ]
+    },
+    {
+      "id": "sec_open_redirect_015",
+      "category": "sec",
+      "elapsed_s": 9.32,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "open redirect",
+            "redirect",
+            "user input",
+            "external",
+            "validate",
+            "whitelist"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Open redirect vulnerability: the 'next' parameter is used directly in a redirect without validation, allowing an attacker to redirect users to arbitrary external domains."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "Unvalidated redirect via the 'next' parameter allows open redirect attacks, which is a security concern but also a maintainability issue because the intent of safe redirect handling is unclear."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Open redirect vulnerability: the 'next' parameter is used directly in redirect without validation, allowing attackers to redirect users to arbitrary external sites."
+        }
+      ]
+    },
+    {
+      "id": "sec_xxe_lxml_016",
+      "category": "sec",
+      "elapsed_s": 11.44,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "xxe",
+            "xml external entity",
+            "no_network",
+            "resolve_entities",
+            "injection",
+            "entity"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "description": "XML parsing is vulnerable to XXE (XML External Entity) attacks because lxml's default XMLParser resolves external entities."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "XMLParser is created with default settings which may not handle large or malformed XML gracefully, but more importantly the parser object is unused after creation."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 11,
+          "description": "The return value mixes a string attribute (tag) with an integer (len(doc)) which may be confusing for API consumers."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "XML parsing without disabling external entities is vulnerable to XXE attacks. Use etree.XMLParser(resolve_entities=False, no_network=True) or defusedxml."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using lxml's XMLParser without restrictions may allow billion laughs attack (entity expansion). Consider using a parser with entity expansion limits."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Unused variable 'parser' - etree.fromstring accepts parser argument but it's not needed if using default parser."
+        }
+      ]
+    },
+    {
+      "id": "sec_zip_slip_017",
+      "category": "sec",
+      "elapsed_s": 9.58,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "line_end": 9,
+          "keywords": [
+            "zip slip",
+            "path traversal",
+            "directory traversal",
+            "resolve",
+            "../",
+            "outside"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Zip slip vulnerability: entry.filename is used directly in os.path.join without validation, allowing path traversal via filenames containing '../'."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Potential path traversal vulnerability: entry.filename is used directly without sanitization, allowing zip-slip attacks."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Path traversal vulnerability: entry.filename is not sanitized, allowing an attacker to write files outside dest_dir via '..' sequences or absolute paths."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Potential zip bomb: no validation of file size or total uncompressed size before extraction, which could lead to disk exhaustion."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "target_path is computed but never used for validation; consider using it to check path safety before extraction."
+        }
+      ]
+    },
+    {
+      "id": "sec_md5_password_018",
+      "category": "sec",
+      "elapsed_s": 9.9,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "line_end": 6,
+          "keywords": [
+            "md5",
+            "bcrypt",
+            "argon2",
+            "salt",
+            "password hash",
+            "insecure hash",
+            "broken"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "MD5 is a broken cryptographic hash and should not be used for password storage."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using MD5 for password hashing is computationally cheap, making brute-force attacks faster, but this is a security concern not a performance issue per the whitelist."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "MD5 is a weak, non-cryptographic hash unsuitable for password storage."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "MD5 is a weak hash algorithm and should not be used for password storage. Use a strong, slow hash like bcrypt, Argon2, or PBKDF2."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Potential SQL injection if username is not properly sanitized. Although parameterized queries are used, ensure username is validated before insertion."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Unused import 'hashlib' is not needed if only MD5 is used; consider removing or replacing with a secure hashing library."
+        }
+      ]
+    },
+    {
+      "id": "perf_n_plus_one_001",
+      "category": "perf",
+      "elapsed_s": 11.4,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "line_end": 8,
+          "keywords": [
+            "n+1",
+            "eager loading",
+            "joinedload",
+            "selectinload",
+            "query in loop",
+            "n queries"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "N+1 query pattern: executes one query for all posts, then an additional query per post to fetch the author."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "N+1 query pattern causes excessive database queries, but this is a performance issue not a security vulnerability."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "N+1 query problem: fetching author for each post individually instead of using a join."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Potential AttributeError if author is None (no author found for a post)."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "N+1 query problem: fetching all posts then querying author for each post individually. Use eager loading (joinedload) to fetch authors in a single query."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Missing type hints for function parameters and return value. Consider adding type hints for better readability and maintainability."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Potential KeyError if author is None (no author found). Consider handling missing author gracefully."
+        }
+      ]
+    },
+    {
+      "id": "perf_sync_in_async_002",
+      "category": "perf",
+      "elapsed_s": 11.24,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "blocking",
+            "async",
+            "event loop",
+            "httpx",
+            "aiohttp",
+            "asyncio",
+            "synchronous"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Synchronous blocking I/O (requests.get) inside an async function blocks the event loop for each request."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Synchronous requests.get() call blocks the event loop in an async function, enabling a denial-of-service attack by exhausting the async worker pool."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Async function uses blocking requests.get() instead of an async HTTP library, making the async keyword misleading."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Variable name 'pid' is a minor abbreviation; 'product_id' would be clearer."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using synchronous requests.get inside an async function blocks the event loop; use an async HTTP library like aiohttp or httpx."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Sequential HTTP requests for each product ID; consider using asyncio.gather to parallelize requests."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "No error handling for HTTP failures (e.g., network errors, non-200 status codes) or missing 'price' key in JSON response."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Import requests but it is not used asynchronously; consider removing or replacing with an async library."
+        }
+      ]
+    },
+    {
+      "id": "perf_on2_search_003",
+      "category": "perf",
+      "elapsed_s": 10.85,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": [
+            "o(n",
+            "set",
+            "linear search",
+            "complexity",
+            "in operator",
+            "quadratic"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "O(n*m) complexity due to repeated O(n) list membership checks (item in list_b) inside a loop over list_a."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 4,
+          "description": "Repeated O(n) membership check (item not in common) on a list that grows over time, adding O(n^2) worst-case overhead."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "The function uses a manual loop and membership checks, which is less readable and less efficient than using set intersection."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Using 'in' on list_b is O(n) per lookup, making the overall complexity O(n*m). Consider converting list_b to a set for O(1) lookups."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Checking 'item not in common' is O(k) per iteration, where k grows with the result size. Use a set to track seen items for O(1) membership tests."
+        }
+      ]
+    },
+    {
+      "id": "perf_regex_recompile_004",
+      "category": "perf",
+      "elapsed_s": 11.55,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "re.compile",
+            "compile",
+            "repeated compilation",
+            "regex",
+            "precompile",
+            "loop"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "re.match is called inside a loop, recompiling the regex pattern on every iteration."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "The email regex pattern lacks end-of-string anchors, allowing partial matches and bypassing validation for malicious inputs like 'attacker@evil.com<script>alert(1)</script>'."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Regex pattern is missing a trailing $ anchor, so it accepts partial matches like 'user@host.extra' as valid."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Regex pattern does not anchor the end of the string, allowing partial matches (e.g., 'user@host.com.evil' would pass)."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "re.match is called inside the loop; consider compiling the regex once outside the loop for better performance."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Regex pattern is not raw string (r'...') but it is; however, consider adding a $ anchor to ensure full string match."
+        }
+      ]
+    },
+    {
+      "id": "perf_load_all_for_count_005",
+      "category": "perf",
+      "elapsed_s": 10.27,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": [
+            "count",
+            "func.count",
+            "all()",
+            "unnecessary load",
+            "aggregation",
+            "scalar"
+          ]
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "count",
+            "func.count",
+            "all()",
+            "unnecessary load",
+            "aggregation",
+            "scalar"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Loading entire result set with .all() when only a count is needed."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Loading entire result set with .all() when only a count is needed."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Loading all rows into memory only to count them is inefficient and obscures the intent; use a count query instead."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Loading all rows into memory only to count them is inefficient and obscures the intent; use a count query instead."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Using .all() and len() loads all rows into memory; use .count() for efficient counting."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Using .all() and len() loads all rows into memory; use .count() for efficient counting."
+        }
+      ]
+    },
+    {
+      "id": "perf_time_sleep_async_006",
+      "category": "perf",
+      "elapsed_s": 10.45,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "time.sleep",
+            "asyncio.sleep",
+            "blocking",
+            "event loop",
+            "async",
+            "coroutine"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Synchronous blocking I/O (time.sleep) inside an async function blocks the entire event loop, preventing other coroutines from running."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using blocking time.sleep() inside an async function blocks the entire event loop, enabling a denial-of-service attack by starving other coroutines."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using blocking time.sleep() inside an async function blocks the event loop, defeating the purpose of async code."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using time.sleep() blocks the event loop; use asyncio.sleep() instead."
+        }
+      ]
+    },
+    {
+      "id": "perf_conn_per_row_007",
+      "category": "perf",
+      "elapsed_s": 11.55,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "line_end": 8,
+          "keywords": [
+            "connection per iteration",
+            "connection pooling",
+            "executemany",
+            "batch insert",
+            "loop",
+            "open connection"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "critical",
+          "line_start": 7,
+          "description": "N+1 database connection pattern: opening a new connection and committing per event inside a loop instead of batching all inserts into a single transaction."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded database credentials in source code allow anyone with access to the repository to connect to the database."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Function opens and closes a database connection for each event instead of reusing a single connection, making the code harder to maintain and reason about."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Opening a new database connection for each event in a loop is extremely inefficient; use a single connection and batch inserts."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Hardcoded database credentials in source code; use environment variables or a secrets manager."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Connection is not closed if an exception occurs before conn.close(); use a context manager (with statement) for automatic cleanup."
+        }
+      ]
+    },
+    {
+      "id": "perf_str_concat_loop_008",
+      "category": "perf",
+      "elapsed_s": 10.81,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": [
+            "string concatenation",
+            "join",
+            "immutable",
+            "o(n",
+            "StringIO",
+            "quadratic"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Unescaped user-controlled input concatenated into HTML creates a stored/reflected XSS vulnerability."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Unescaped user-controlled input concatenated into HTML creates a stored/reflected XSS vulnerability."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "Repeated string concatenation in a loop creates O(n²) time complexity due to immutable string copying."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Repeated string concatenation in a loop creates O(n²) time complexity due to immutable string copying."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "String concatenation in a loop is inefficient and less readable; prefer joining a list or using a generator expression."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "String concatenation in a loop is inefficient and less readable; prefer joining a list or using a generator expression."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "String concatenation in a loop creates a new string each iteration; use a list and ''.join() for better performance."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "String concatenation in a loop creates a new string each iteration; use a list and ''.join() for better performance."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 4,
+          "description": "Unescaped user input in HTML context can lead to Cross-Site Scripting (XSS) vulnerabilities."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Unescaped user input in HTML context can lead to Cross-Site Scripting (XSS) vulnerabilities."
+        }
+      ]
+    },
+    {
+      "id": "perf_no_pagination_009",
+      "category": "perf",
+      "elapsed_s": 11.15,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "line_end": 9,
+          "keywords": [
+            "pagination",
+            "limit",
+            "offset",
+            "all()",
+            "unbounded query",
+            "full table scan"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Loading all audit log rows into memory with .all() when only a subset may be needed, causing unbounded memory usage and slow response times."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "Synchronous SQLAlchemy database query inside an async FastAPI endpoint blocks the event loop, reducing concurrency."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "The endpoint returns all audit logs without any authentication, authorization, or access control checks."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Variable name 'l' is too short and easily confused with '1' or 'I', reducing readability."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 1,
+          "description": "Missing import for AuditLog model; code will fail at runtime."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "No authentication or authorization checks; audit logs may expose sensitive data to unauthorized users."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Loading all audit logs into memory without pagination; could cause high memory usage and slow response for large datasets."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "Async function defined but uses synchronous SQLAlchemy ORM call; consider using async database session or make function synchronous."
+        }
+      ]
+    },
+    {
+      "id": "perf_linear_search_in_loop_010",
+      "category": "perf",
+      "elapsed_s": 10.77,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "line_end": 6,
+          "keywords": [
+            "o(n",
+            "linear search",
+            "dict lookup",
+            "index",
+            "complexity",
+            "quadratic"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "O(n*m) nested loop: for each order, a linear scan over all products is performed via next() with a generator, causing O(len(orders)*len(products)) complexity."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Potential KeyError if an order dict is missing the 'product_id' key, which could crash the application or leak stack traces."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Using next() with a generator and None default for a linear search over products per order results in O(n*m) complexity, but more importantly the logic is harder to read than a simple dictionary lookup."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Using next() with a generator inside a loop over orders results in O(n*m) complexity. Consider building a product lookup dictionary for O(1) access."
+        }
+      ]
+    },
+    {
+      "id": "perf_repeated_aggregation_011",
+      "category": "perf",
+      "elapsed_s": 11.5,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": [
+            "o(n",
+            "redundant computation",
+            "groupby",
+            "defaultdict",
+            "precompute",
+            "full scan"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "O(n²) algorithmic complexity: for each unique customer, the code iterates over the entire orders list to compute the sum, leading to O(n*m) where n is orders and m is unique customers."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "The function trusts that every order dict contains 'customer_id' and 'amount' keys without validation, which can raise KeyError or silently produce incorrect results if data is malformed."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "Building a set of customer IDs and then iterating over it while scanning all orders for each ID results in O(n*m) complexity, which is unnecessarily convoluted for this aggregation task."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Inefficient nested loop: for each customer_id, the code iterates over all orders to compute the sum, resulting in O(n*m) complexity. Use a single pass with a dictionary to accumulate totals."
+        }
+      ]
+    },
+    {
+      "id": "perf_sort_for_max_012",
+      "category": "perf",
+      "elapsed_s": 11.37,
+      "expected": [
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": [
+            "sort",
+            "max",
+            "min",
+            "o(n log n)",
+            "unnecessary sort",
+            "linear",
+            "key function"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "O(n log n) sorting when O(n) linear scan would suffice to find the maximum timestamp."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "O(n log n) sorting when O(n) linear scan would suffice to find the minimum price."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "Missing key existence check on 'timestamp' in lambda can raise KeyError if input dict lacks that key, potentially leaking stack traces or enabling denial-of-service."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Missing key existence check on 'price' in lambda can raise KeyError if input dict lacks that key, potentially leaking stack traces or enabling denial-of-service."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function uses a full sort (O(n log n)) when a linear scan (O(n)) would suffice, making the intent less clear."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "Function uses a full sort (O(n log n)) when a linear scan (O(n)) would suffice, making the intent less clear."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Sorting the entire list to find the maximum is O(n log n); use max() with a key for O(n) performance."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Sorting the entire list to find the minimum is O(n log n); use min() with a key for O(n) performance."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "Using a lambda for key is acceptable but operator.itemgetter('timestamp') is more readable and faster."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Using a lambda for key is acceptable but operator.itemgetter('price') is more readable and faster."
+        }
+      ]
+    },
+    {
+      "id": "style_bare_except_001",
+      "category": "style",
+      "elapsed_s": 12.34,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "line_end": 4,
+          "keywords": [
+            "bare except",
+            "BaseException",
+            "KeyboardInterrupt",
+            "specific exception",
+            "except clause"
+          ]
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 14,
+          "line_end": 14,
+          "keywords": [
+            "bare except",
+            "BaseException",
+            "KeyboardInterrupt",
+            "specific exception",
+            "except clause"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Bare except catches BaseException including SystemExit and KeyboardInterrupt, which can mask critical signals and make the application unresponsive to shutdown requests."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Bare except catches BaseException including SystemExit and KeyboardInterrupt, which can mask critical signals and make the application unresponsive to shutdown requests."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Bare except clause catches all exceptions including KeyboardInterrupt and SystemExit, which can mask critical errors."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 12,
+          "description": "Bare except clause catches all exceptions including KeyboardInterrupt and SystemExit, which can mask critical errors."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function parse_config_value returns -1 as a sentinel value for invalid input, which is a magic number that may be confused with a valid parsed value."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "Function parse_port silently falls back to a default port 8080 on any error, which may hide configuration mistakes from the caller."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 3,
+          "description": "Bare except clause catches all exceptions including KeyboardInterrupt and SystemExit; use except ValueError or except Exception."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Bare except clause catches all exceptions including KeyboardInterrupt and SystemExit; use except ValueError or except Exception."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function parse_config_value is unused; consider removing it if not needed."
+        }
+      ]
+    },
+    {
+      "id": "style_swallowed_exception_002",
+      "category": "style",
+      "elapsed_s": 9.99,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 11,
+          "line_end": 12,
+          "keywords": [
+            "swallowed exception",
+            "silent failure",
+            "log",
+            "raise",
+            "bare pass",
+            "ignored exception"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Bare except clause silently swallows all exceptions, making debugging and error handling impossible."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Bare except clause silently swallows all exceptions, including programming errors and security-relevant failures, making debugging and attack detection impossible."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Bare except catches all exceptions, including SystemExit and KeyboardInterrupt, which can mask critical errors and prevent proper shutdown."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Empty except block silently ignores all exceptions; at minimum, logging the exception is recommended."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Cache deletion is performed even if db.update fails, which may be unnecessary; consider moving cache.delete inside the success path only."
+        }
+      ]
+    },
+    {
+      "id": "style_magic_numbers_003",
+      "category": "style",
+      "elapsed_s": 10.53,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "line_end": 8,
+          "keywords": [
+            "magic number",
+            "constant",
+            "named constant",
+            "readability",
+            "maintainability",
+            "literal"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Magic numbers for rate limits and tiers obscure the meaning and make the code hard to modify."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function name 'apply_rate_limit' is misleading; it returns a boolean check, not applying a limit."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Consider using a dictionary mapping tier to limit for better maintainability and readability."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Default case returns limit for unknown tier; consider raising an exception or logging a warning."
+        }
+      ]
+    },
+    {
+      "id": "style_deep_nesting_004",
+      "category": "style",
+      "elapsed_s": 13.37,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "line_end": 9,
+          "keywords": [
+            "deep nesting",
+            "early return",
+            "guard clause",
+            "nesting",
+            "complexity",
+            "flatten"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "No input validation or sanitization is performed on the event dictionary fields before processing."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "Deeply nested if-statements obscure the happy path and make the logic hard to follow."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "The magic strings 'payment', 'completed', 'USD', and 'process' should be named constants for clarity and maintainability."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Missing type hint for return value; consider adding -> str"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Deeply nested if statements reduce readability; consider early returns or guard clauses"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "Redundant check: if event is truthy, but event.get('type') already handles None; consider removing outer if"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 4,
+          "description": "Redundant check: if event.get('data') is truthy, but subsequent data.get() handles None; consider removing"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Redundant check: if data.get('amount', 0) > 0 is always true when amount is missing (default 0 > 0 is false); consider simplifying"
+        }
+      ]
+    },
+    {
+      "id": "style_mutable_default_arg_005",
+      "category": "style",
+      "elapsed_s": 9.96,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 1,
+          "line_end": 1,
+          "keywords": [
+            "mutable default",
+            "default argument",
+            "None",
+            "shared state",
+            "list",
+            "evaluated once"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 1,
+          "description": "Mutable default argument `handlers: list = []` is shared across all calls, causing unexpected state mutation."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Mutable default argument `handlers=[]` is shared across all calls, causing unintended accumulation of handler names in the list."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Mutable default argument 'handlers' is shared across all calls, causing unintended state mutation that could lead to handler list pollution or information disclosure."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Mutable default argument 'handlers' is shared across all calls, causing unintended state mutation."
+        }
+      ]
+    },
+    {
+      "id": "style_compare_none_006",
+      "category": "style",
+      "elapsed_s": 10.21,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "line_end": 4,
+          "keywords": [
+            "is None",
+            "== None",
+            "identity",
+            "PEP 8",
+            "comparison",
+            "is not None"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "The function returns user['nickname'] without validating that the value is a string, which could lead to XSS or injection if the value is malicious HTML/JavaScript and rendered in a web context."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "The function returns user['full_name'] without validating that the value is a string, which could lead to XSS or injection if the value is malicious HTML/JavaScript and rendered in a web context."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "Comparison to None using != instead of is."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Comparison to None using == instead of is."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "Use 'is not None' instead of '!= None' for None comparison."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 4,
+          "description": "Use 'is None' instead of '== None' for None comparison."
+        }
+      ]
+    },
+    {
+      "id": "style_boolean_flag_params_007",
+      "category": "style",
+      "elapsed_s": 9.85,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 4,
+          "line_end": 6,
+          "keywords": [
+            "boolean parameter",
+            "flag argument",
+            "enum",
+            "options",
+            "readability",
+            "boolean trap"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Boolean flag parameters send_email, send_sms, send_push make the function less readable and harder to extend."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function has too many boolean parameters; consider using a configuration object or keyword-only arguments to improve readability and reduce risk of positional misuse."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Function does not handle potential exceptions from client.send calls; unhandled exceptions may cause the entire function to fail, losing results from other channels."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 1,
+          "description": "No input validation for user_id or message; user_id should be validated as a positive integer and message should be sanitized to prevent injection attacks in downstream services."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Missing type hints for return value; consider adding -> dict[str, Any] or a more specific type."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function name 'send_notification' is generic; consider a more descriptive name like 'send_notification_via_channels'."
+        }
+      ]
+    },
+    {
+      "id": "style_god_function_008",
+      "category": "style",
+      "elapsed_s": 13.89,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "line_end": 15,
+          "keywords": [
+            "god function",
+            "single responsibility",
+            "refactor",
+            "too many responsibilities",
+            "separation of concerns",
+            "long function"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Import inside function body causes repeated import overhead on every call."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Synchronous blocking I/O (smtp.send) inside a request handler blocks the event loop or worker thread."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "Synchronous blocking I/O (analytics.track) inside a request handler blocks the event loop or worker thread."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 12,
+          "description": "Synchronous blocking file I/O (audit_log.write) inside a request handler blocks the event loop or worker thread."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "SHA-256 is used for password hashing without a salt or a slow key derivation function, making stored passwords vulnerable to offline brute-force and rainbow table attacks."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 13,
+          "description": "The audit log writes the user's email address in plaintext, which may expose sensitive personally identifiable information (PII) in log files."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Import of hashlib is placed inside the function body instead of at the top of the module, which is non-standard and can obscure dependencies."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Function 'process_new_user' performs multiple unrelated responsibilities: validation, password hashing, database insertion, billing, email sending, analytics, and audit logging, making it a god function that is hard to test and maintain."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "Email validation is overly simplistic; checking only for '@' presence may accept clearly invalid addresses like '@.'"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 4,
+          "description": "Password length check uses a magic number 8; this should be a named constant for clarity and maintainability."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Using SHA-256 for password hashing is insecure; use a dedicated password hashing algorithm like bcrypt, argon2, or scrypt."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Sending sensitive information (subscription ID) in plain text via email is a security risk."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "Tracking analytics with user email exposes personally identifiable information (PII) to third-party services."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 12,
+          "description": "Logging user email addresses in audit logs may expose PII; consider logging a hashed or anonymized identifier."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 4,
+          "description": "Import hashlib inside the function causes repeated import overhead; move to module level."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Function name 'process_new_user' is vague; consider a more descriptive name like 'register_user'."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Variable name 'pwd_hash' is cryptic; use 'password_hash' for clarity."
+        }
+      ]
+    },
+    {
+      "id": "style_unused_variable_009",
+      "category": "style",
+      "elapsed_s": 12.44,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": [
+            "unused variable",
+            "dead code",
+            "unnecessary computation",
+            "unreferenced",
+            "never used"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "The function returns a plain dict with no type hint, making it unclear what keys and value types the caller can expect."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "No input validation: if values is empty, division by zero will occur on line 3 and 5."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Using sum with a generator expression for variance is fine, but consider using math.fsum for better numerical stability with large datasets."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Use math.sqrt(std_dev) instead of ** 0.5 for clarity and potential performance improvement."
+        }
+      ]
+    },
+    {
+      "id": "style_missing_type_hints_010",
+      "category": "style",
+      "elapsed_s": 7.83,
+      "expected": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "line_end": 10,
+          "keywords": [
+            "type annotation",
+            "type hint",
+            "missing types",
+            "mypy",
+            "Any",
+            "untyped"
+          ]
+        }
+      ],
+      "multi_predicted": [],
+      "baseline_predicted": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Class name 'ReportBuilder' is acceptable but could be more descriptive; consider adding a docstring to explain its purpose."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "Missing type hint for 'config' parameter; consider adding type annotation for clarity."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Missing type hints for 'title' and 'content' parameters; consider adding type annotations."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Missing return type hint for 'build' method; consider adding '-> str'."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 11,
+          "description": "Using 'join' with a generator expression is fine, but consider adding a newline between sections for better readability."
+        }
+      ]
+    }
+  ],
+  "multi_agent": {
+    "precision": 0.2706766917293233,
+    "recall": 0.8372093023255814,
+    "f1": 0.4090909090909091,
+    "per_category": {
+      "security": {
+        "precision": 0.40476190476190477,
+        "recall": 0.8947368421052632,
+        "f1": 0.5573770491803278
+      },
+      "performance": {
+        "precision": 0.5909090909090909,
+        "recall": 1.0,
+        "f1": 0.7428571428571429
+      },
+      "style": {
+        "precision": 0.35294117647058826,
+        "recall": 0.5454545454545454,
+        "f1": 0.42857142857142855
+      }
+    }
+  },
+  "single_llm_baseline": {
+    "precision": 0.304,
+    "recall": 0.8837209302325582,
+    "f1": 0.45238095238095233,
+    "per_category": {
+      "security": {
+        "precision": 0.36,
+        "recall": 0.9473684210526315,
+        "f1": 0.5217391304347826
+      },
+      "performance": {
+        "precision": 0.5909090909090909,
+        "recall": 1.0,
+        "f1": 0.7428571428571429
+      },
+      "style": {
+        "precision": 0.2916666666666667,
+        "recall": 0.6363636363636364,
+        "f1": 0.4
+      }
+    }
+  }
+}

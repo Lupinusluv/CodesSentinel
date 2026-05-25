@@ -10,7 +10,7 @@
           "severity": "warning",
           "line_start": 8,
           "line_end": 8,
-          "keywords": ["n+1", "eager loading", "joinedload", "selectinload", "query in loop", "n queries"]
+          "keywords": ["n+1", "N+1", "N + 1", "n + 1", "eager loading", "eager-loading", "eager", "joinedload", "selectinload", "query in loop", "queries in loop", "query inside loop", "database call in loop", "n queries", "multiple queries", "many queries"]
         }
       ]
     },
@@ -24,7 +24,7 @@
           "severity": "warning",
           "line_start": 7,
           "line_end": 7,
-          "keywords": ["blocking", "async", "event loop", "httpx", "aiohttp", "asyncio", "synchronous"]
+          "keywords": ["blocking", "blocks", "blocked", "async", "asynchronous", "event loop", "event-loop", "httpx", "aiohttp", "asyncio", "synchronous", "sync", "synchronously"]
         }
       ]
     },
@@ -38,7 +38,7 @@
           "severity": "warning",
           "line_start": 4,
           "line_end": 4,
-          "keywords": ["o(n", "set", "linear search", "complexity", "in operator", "quadratic"]
+          "keywords": ["o(n", "O(n", "set", "linear search", "linear lookup", "complexity", "complex", "in operator", "in-operator", "membership test", "quadratic", "quadratic time", "O(n²)", "O(n^2)"]
         }
       ]
     },
@@ -52,7 +52,7 @@
           "severity": "suggestion",
           "line_start": 7,
           "line_end": 7,
-          "keywords": ["re.compile", "compile", "repeated compilation", "regex", "precompile", "loop"]
+          "keywords": ["re.compile", "compile", "compilation", "compiled", "repeated compilation", "recompile", "recompiles", "recompiling", "regex", "regular expression", "precompile", "pre-compile", "pre-compiled", "loop"]
         }
       ]
     },
@@ -66,14 +66,14 @@
           "severity": "warning",
           "line_start": 5,
           "line_end": 5,
-          "keywords": ["count", "func.count", "all()", "unnecessary load", "aggregation", "scalar"]
+          "keywords": ["count", "count()", "counting", "func.count", "all()", "unnecessary load", "loading all", "fetching all", "aggregation", "aggregate", "scalar", "scalar query", "into memory"]
         },
         {
           "category": "performance",
           "severity": "warning",
           "line_start": 10,
           "line_end": 10,
-          "keywords": ["count", "func.count", "all()", "unnecessary load", "aggregation", "scalar"]
+          "keywords": ["count", "count()", "counting", "func.count", "all()", "unnecessary load", "loading all", "fetching all", "aggregation", "aggregate", "scalar", "scalar query", "into memory"]
         }
       ]
     },
@@ -87,7 +87,7 @@
           "severity": "warning",
           "line_start": 10,
           "line_end": 10,
-          "keywords": ["time.sleep", "asyncio.sleep", "blocking", "event loop", "async", "coroutine"]
+          "keywords": ["time.sleep", "sleep", "asyncio.sleep", "blocking", "blocks", "blocked", "event loop", "event-loop", "async", "asynchronous", "coroutine"]
         }
       ]
     },
@@ -101,7 +101,7 @@
           "severity": "warning",
           "line_start": 8,
           "line_end": 8,
-          "keywords": ["connection per iteration", "connection pooling", "executemany", "batch insert", "loop", "open connection"]
+          "keywords": ["connection per iteration", "connection per row", "new connection per", "connection in loop", "connection pooling", "connection pool", "pool", "executemany", "batch insert", "bulk insert", "batch", "loop", "open connection", "opening connection"]
         }
       ]
     },
@@ -115,7 +115,7 @@
           "severity": "suggestion",
           "line_start": 4,
           "line_end": 4,
-          "keywords": ["string concatenation", "join", "immutable", "o(n", "StringIO", "quadratic"]
+          "keywords": ["string concatenation", "concatenation", "concat", "concatenating strings", "join", "str.join", "''.join", "immutable", "immutability", "o(n", "O(n", "StringIO", "quadratic"]
         }
       ]
     },
@@ -129,7 +129,7 @@
           "severity": "warning",
           "line_start": 9,
           "line_end": 9,
-          "keywords": ["pagination", "limit", "offset", "all()", "unbounded query", "full table scan"]
+          "keywords": ["pagination", "paginate", "paginated", "paginating", "limit", "LIMIT", "limit clause", "offset", "OFFSET", "all()", "unbounded query", "unbounded", "no limit", "full table scan", "table scan", "full scan"]
         }
       ]
     },
@@ -143,7 +143,7 @@
           "severity": "warning",
           "line_start": 4,
           "line_end": 6,
-          "keywords": ["o(n", "linear search", "dict lookup", "index", "complexity", "quadratic"]
+          "keywords": ["o(n", "O(n", "linear search", "linear lookup", "dict lookup", "dictionary lookup", "hash lookup", "index", "indexed", "indexing", "complexity", "quadratic", "quadratic time"]
         }
       ]
     },
@@ -157,7 +157,7 @@
           "severity": "warning",
           "line_start": 5,
           "line_end": 5,
-          "keywords": ["o(n", "redundant computation", "groupby", "defaultdict", "precompute", "full scan"]
+          "keywords": ["o(n", "O(n", "redundant computation", "redundant", "recomputation", "recompute", "groupby", "group by", "group_by", "defaultdict", "precompute", "pre-compute", "precomputed", "full scan", "scan"]
         }
       ]
     },
@@ -171,7 +171,7 @@
           "severity": "suggestion",
           "line_start": 4,
           "line_end": 4,
-          "keywords": ["sort", "max", "min", "o(n log n)", "unnecessary sort", "linear", "key function"]
+          "keywords": ["sort", "sorting", "sorted", "max", "maximum", "max()", "min", "minimum", "min()", "o(n log n)", "O(n log n)", "n log n", "unnecessary sort", "unnecessary sorting", "linear", "linear time", "O(n)", "key function", "key="]
         }
       ]
     }

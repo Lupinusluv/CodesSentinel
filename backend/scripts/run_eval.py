@@ -238,28 +238,11 @@ def print_results(multi: dict, base: dict) -> None:
 
 # ── Result persistence ────────────────────────────────────────────────────────
 
-def _save_results(
-    multi: dict,
-    base: dict,
-    samples: list[dict],
-    elapsed_s: float,
-) -> None:
-    results_dir = Path(__file__).parent / "eval_results"
-    results_dir.mkdir(exist_ok=True)
-
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    out_path = results_dir / f"{ts}.json"
-
-    payload = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "sample_count": len(samples),
-        "categories": sorted({s["id"].split("_")[0] for s in samples}),
-        "elapsed_seconds": round(elapsed_s, 1),
-        "multi_agent": multi,
-        "single_llm_baseline": base,
-    }
-    out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f"Results saved → {out_path}")
+def _write_payload(out_path: Path, payload: dict) -> None:
+    """Atomic-ish write: write to tmp then rename, so a crash mid-flush can't truncate."""
+    tmp = out_path.with_suffix(out_path.suffix + ".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(out_path)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -272,25 +255,67 @@ async def main() -> None:
         metavar="CATS",
         help="Comma-separated categories to run, e.g. 'security' or 'security,performance'",
     )
+    parser.add_argument(
+        "--reuse-baseline",
+        default=None,
+        metavar="PATH",
+        help="Path to a previous result JSON; reuse its baseline_predicted/metrics instead of re-running baseline",
+    )
     args = parser.parse_args()
 
     subset = [s.strip() for s in args.subset.split(",")] if args.subset else None
     samples = load_samples(subset)
-    print(f"Loaded {len(samples)} samples. Running multi-agent and baseline in parallel per sample...")
+
+    reuse_baseline_map: dict[str, list[dict]] | None = None
+    if args.reuse_baseline:
+        with open(args.reuse_baseline, encoding="utf-8") as f:
+            old = json.load(f)
+        reuse_baseline_map = {s["id"]: s["baseline_predicted"] for s in old.get("per_sample", [])}
+        missing = [s["id"] for s in samples if s["id"] not in reuse_baseline_map]
+        if missing:
+            raise SystemExit(f"--reuse-baseline missing predictions for: {missing[:3]} ...")
+        print(f"Reusing baseline predictions from {args.reuse_baseline} (metrics will be re-computed against current expected_issues)")
+
+    if reuse_baseline_map is not None:
+        print(f"Loaded {len(samples)} samples. Running multi-agent only (baseline reused)...")
+    else:
+        print(f"Loaded {len(samples)} samples. Running multi-agent and baseline in parallel per sample...")
+
+    results_dir = Path(__file__).parent / "eval_results"
+    results_dir.mkdir(exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    out_path = results_dir / f"{ts}.json"
+    print(f"Incremental results → {out_path}")
 
     multi_predicted: list[list[dict]] = []
     baseline_predicted: list[list[dict]] = []
     all_expected: list[list[dict]] = []
+    per_sample: list[dict] = []
     total_elapsed = 0.0
+
+    base_payload: dict = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "sample_count": len(samples),
+        "completed_count": 0,
+        "categories": sorted({s["id"].split("_")[0] for s in samples}),
+        "elapsed_seconds": 0.0,
+        "per_sample": per_sample,
+        "multi_agent": None,
+        "single_llm_baseline": None,
+    }
 
     for i, sample in enumerate(samples, 1):
         print(f"[{i:2d}/{len(samples)}] {sample['id']} ...", end=" ", flush=True)
         t0 = time.monotonic()
 
-        m_issues, b_issues = await asyncio.gather(
-            run_multi_agent(sample),
-            run_baseline(sample),
-        )
+        if reuse_baseline_map is not None:
+            m_issues = await run_multi_agent(sample)
+            b_issues = reuse_baseline_map[sample["id"]]
+        else:
+            m_issues, b_issues = await asyncio.gather(
+                run_multi_agent(sample),
+                run_baseline(sample),
+            )
 
         elapsed = time.monotonic() - t0
         total_elapsed += elapsed
@@ -300,12 +325,32 @@ async def main() -> None:
         baseline_predicted.append(b_issues)
         all_expected.append(sample["expected_issues"])
 
+        per_sample.append({
+            "id": sample["id"],
+            "category": sample["id"].split("_")[0],
+            "elapsed_s": round(elapsed, 2),
+            "expected": sample["expected_issues"],
+            "multi_predicted": m_issues,
+            "baseline_predicted": b_issues,
+        })
+
+        # Incremental snapshot — survives Ctrl-C / crash on later samples
+        base_payload["completed_count"] = i
+        base_payload["elapsed_seconds"] = round(total_elapsed, 1)
+        _write_payload(out_path, base_payload)
+
     multi_metrics    = compute_metrics(multi_predicted, all_expected)
+    # Always re-compute baseline metrics from predictions against current expected_issues.
+    # This is critical when expected_issues' keyword set has changed since the cached run.
     baseline_metrics = compute_metrics(baseline_predicted, all_expected)
 
     print(f"\nTotal elapsed: {total_elapsed:.0f}s")
     print_results(multi_metrics, baseline_metrics)
-    _save_results(multi_metrics, baseline_metrics, samples, total_elapsed)
+
+    base_payload["multi_agent"] = multi_metrics
+    base_payload["single_llm_baseline"] = baseline_metrics
+    _write_payload(out_path, base_payload)
+    print(f"Results saved → {out_path}")
 
 
 if __name__ == "__main__":

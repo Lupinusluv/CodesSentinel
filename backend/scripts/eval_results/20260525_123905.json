@@ -1,0 +1,1378 @@
+{
+  "timestamp": "2026-05-25T12:39:05.887886+00:00",
+  "sample_count": 18,
+  "completed_count": 18,
+  "categories": [
+    "sec"
+  ],
+  "elapsed_seconds": 223.5,
+  "per_sample": [
+    {
+      "id": "sec_sql_inject_fstring_001",
+      "category": "sec",
+      "elapsed_s": 12.56,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "line_end": 6,
+          "keywords": [
+            "sql injection",
+            "f-string",
+            "parameterized",
+            "user input",
+            "format string"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "SQL injection vulnerability due to direct string interpolation of user input into SQL query."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "SQL query is built using string interpolation, which is error-prone and should be replaced with parameterized queries."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Using string formatting for SQL query prevents query plan caching and forces recompilation on each call."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 4,
+          "description": "Function does not handle potential database errors such as connection issues or malformed queries."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "Missing return type annotation for the function, which would improve readability and type checking."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "SQL injection vulnerability: string interpolation in SQL query allows arbitrary SQL execution. Use parameterized queries instead."
+        }
+      ]
+    },
+    {
+      "id": "sec_sql_inject_concat_002",
+      "category": "sec",
+      "elapsed_s": 12.88,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "line_end": 2,
+          "keywords": [
+            "sql injection",
+            "concatenation",
+            "parameterized",
+            "user input"
+          ]
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "sql injection",
+            "concatenation",
+            "parameterized",
+            "user input"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "description": "SQL injection vulnerability in get_user function due to direct string concatenation of user input into SQL query."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "SQL injection vulnerability in get_admin function due to direct string concatenation of user input into SQL query."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "Using string concatenation for SQL queries prevents query plan caching and may cause repeated query compilation."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using string concatenation for SQL queries prevents query plan caching and may cause repeated query compilation."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 2,
+          "description": "SQL query is built using string concatenation, which is error-prone and hard to maintain."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "SQL query is built using string concatenation, which is error-prone and hard to maintain."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Using SELECT * retrieves all columns even when only a subset is needed, increasing I/O and memory usage."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Using SELECT * retrieves all columns even when only a subset is needed, increasing I/O and memory usage."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "The get_user function lacks error handling for database connection or query execution failures."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "The get_admin function lacks error handling for database connection or query execution failures."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 2,
+          "description": "SQL injection vulnerability: string concatenation with user input in query"
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "SQL injection vulnerability: string concatenation with user input in query"
+        }
+      ]
+    },
+    {
+      "id": "sec_cmd_inject_shell_003",
+      "category": "sec",
+      "elapsed_s": 12.57,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 7,
+          "keywords": [
+            "command injection",
+            "shell=True",
+            "shell injection",
+            "user input",
+            "arbitrary command"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection vulnerability via unsanitized host parameter passed to shell=True."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Using shell=True with string interpolation introduces overhead from spawning a shell process and prevents subprocess from optimizing the command execution."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Using shell=True with a formatted string containing user input is a code quality issue due to potential command injection and lack of input validation."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "The function does not handle errors such as ping failure or subprocess exceptions, which could lead to unhandled crashes."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection vulnerability: using shell=True with f-string allows arbitrary command execution via the host parameter."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Using shell=True spawns an extra shell process; prefer subprocess.run with a list of arguments for better performance."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Missing type hints for function parameters and return value; consider adding them for better readability."
+        }
+      ]
+    },
+    {
+      "id": "sec_cmd_inject_ossystem_004",
+      "category": "sec",
+      "elapsed_s": 12.81,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 6,
+          "keywords": [
+            "command injection",
+            "os.system",
+            "shell",
+            "user input",
+            "arbitrary command"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection via unsanitized filename in os.system call."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Command injection via unsanitized filename in os.system call."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Using os.system() is fragile and error-prone; it provides no error handling or output capture."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Using os.system() spawns a subprocess for each image operation, which is expensive for batch processing."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Using os.system() spawns a subprocess for each image operation, which is expensive for batch processing."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "The 'os' module is imported but not used directly; only os.system is called, which is better replaced by subprocess."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "description": "Command injection via unsanitized filename in os.system call"
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Command injection via unsanitized filename and width in os.system call"
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Use of os.system instead of subprocess module for safer command execution"
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Use of os.system instead of subprocess module for safer command execution"
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Using os.system spawns a shell process; consider subprocess.run for better performance and control"
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Using os.system spawns a shell process; consider subprocess.run for better performance and control"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Missing input validation for filename and fmt parameters"
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Missing input validation for filename and width parameters"
+        }
+      ]
+    },
+    {
+      "id": "sec_path_traversal_005",
+      "category": "sec",
+      "elapsed_s": 11.73,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "path traversal",
+            "directory traversal",
+            "sanitize",
+            "../",
+            "resolve",
+            "is_relative_to"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability allows reading arbitrary files outside BASE_DIR via filename containing '../'."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 11,
+          "description": "Path traversal vulnerability allows deleting arbitrary files outside BASE_DIR via filename containing '../'."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Reading entire file into memory without streaming or size limits can cause high memory usage for large files."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Missing error handling for file not found or permission errors in read_document."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "Missing error handling for file not found or permission errors in delete_document."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "BASE_DIR is a hardcoded path that could be made configurable via environment variable."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing access to files outside BASE_DIR via '../' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 11,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing deletion of files outside BASE_DIR via '../' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "Missing error handling: file read may raise FileNotFoundError or PermissionError, potentially leaking information or causing crashes."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 12,
+          "description": "Missing error handling: file deletion may raise FileNotFoundError or PermissionError, potentially leaking information or causing crashes."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "No context manager for file reading; using 'with open' is fine, but consider adding encoding='utf-8' for explicit text handling."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Unused import: 'os' is used but could be replaced with pathlib for more modern path handling."
+        }
+      ]
+    },
+    {
+      "id": "sec_path_traversal_resolve_006",
+      "category": "sec",
+      "elapsed_s": 11.7,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "path traversal",
+            "resolve",
+            "is_relative_to",
+            "directory traversal",
+            "../"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing access to files outside UPLOAD_DIR via '..' sequences."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "Two separate filesystem calls (exists() then read_bytes()) cause an extra stat syscall and a TOCTOU race window."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Path traversal vulnerability is not handled; filename could contain '..' to access files outside UPLOAD_DIR."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Missing type annotation for 'filename' parameter; adding it would improve readability."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Unused import 'Path' from pathlib; it is used on line 3, so this is fine."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Path traversal vulnerability: filename is not sanitized, allowing access to files outside UPLOAD_DIR via '..' sequences."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Potential symlink attack: file_path.exists() and read_bytes() follow symlinks, which could allow access to sensitive files outside UPLOAD_DIR."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "Redundant existence check: file_path.exists() followed by read_bytes() performs two filesystem calls; consider using try-except with open() to handle missing file in one operation."
+        }
+      ]
+    },
+    {
+      "id": "sec_hardcoded_password_007",
+      "category": "sec",
+      "elapsed_s": 11.98,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 5,
+          "line_end": 5,
+          "keywords": [
+            "hardcoded",
+            "credential",
+            "secret",
+            "environment variable",
+            "password",
+            "plaintext"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded database credentials (host, user, password, database name) in source code."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded database credentials in source code pose a maintainability risk and should be externalized."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Database connection is created without connection pooling, causing repeated TCP handshake and authentication overhead on each call."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Missing error handling for database connection failures."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded database credentials (host, user, password, dbname) in source code. Use environment variables or a secrets manager."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Hardcoded password 'S3cur3P@ssw0rd!' exposed in plaintext. Store secrets securely."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Connection function does not handle exceptions; consider adding try-except for connection failures."
+        }
+      ]
+    },
+    {
+      "id": "sec_hardcoded_api_key_008",
+      "category": "sec",
+      "elapsed_s": 12.26,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "line_end": 3,
+          "keywords": [
+            "hardcoded",
+            "api key",
+            "secret",
+            "environment variable",
+            "credential",
+            "token"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded OpenAI API key exposed in source code."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 2,
+          "description": "Hardcoded API key exposed in source code."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Importing 'requests' synchronously blocks the event loop if used in an async context."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 5,
+          "description": "Missing error handling for network failures, HTTP errors, and missing JSON keys."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "No timeout is set on the HTTP request, which can cause indefinite blocking under network issues."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 3,
+          "description": "Hardcoded API key exposed in source code; use environment variables or a secrets manager instead."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "No error handling for HTTP request failures or non-200 responses; may expose sensitive error details or crash."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Direct access to response JSON keys without validation; may raise KeyError or expose unexpected data."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "No timeout set on HTTP request; could hang indefinitely under network issues."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "Use all-caps naming for constants is fine, but consider using a config or environment variable for the API key."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 5,
+          "description": "Function name 'chat_complete' is vague; consider a more descriptive name like 'get_chat_completion'."
+        }
+      ]
+    },
+    {
+      "id": "sec_insecure_pickle_009",
+      "category": "sec",
+      "elapsed_s": 13.01,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 12,
+          "line_end": 12,
+          "keywords": [
+            "insecure deserialization",
+            "pickle",
+            "arbitrary code",
+            "user input",
+            "remote code execution"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Insecure deserialization via pickle.loads on user-controlled base64-decoded input allows arbitrary code execution."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 11,
+          "description": "Using pickle.loads on untrusted user input is extremely dangerous and should never be used."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "pickle.loads on user-supplied data is extremely slow and can cause high CPU/memory usage with crafted payloads."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Missing error handling for base64 decoding failure when cart_data is empty or malformed."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Using request.form.get with default empty string silently ignores missing 'cart' field."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 13,
+          "description": "Returning len(cart) assumes cart is a sequence; if cart is not a sequence this will raise TypeError."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "description": "Unsafe deserialization using pickle.loads on user-controlled data can lead to remote code execution."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Missing error handling for base64.b64decode; invalid input will raise an exception."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Missing error handling for pickle.loads; malformed or malicious data can crash the application."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Using pickle for deserialization is slow and insecure; consider JSON or a safer serialization format."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Importing pickle is discouraged due to security risks; consider using a safer alternative."
+        }
+      ]
+    },
+    {
+      "id": "sec_yaml_unsafe_load_010",
+      "category": "sec",
+      "elapsed_s": 14.38,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "yaml.load",
+            "safe_load",
+            "SafeLoader",
+            "arbitrary code",
+            "deserialization",
+            "Loader"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Unsafe use of yaml.load() allows arbitrary code execution via deserialization of untrusted YAML input."
+        },
+        {
+          "category": "style",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Using yaml.load without a Loader parameter is unsafe and deprecated; it can execute arbitrary code."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Using yaml.load without specifying a SafeLoader can be slow and unsafe; yaml.safe_load is faster for untrusted input."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 7,
+          "description": "Missing error handling for request.data decoding; a malformed request body will raise an unhandled exception."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Missing error handling for apply_config; if it fails the exception will propagate as a 500 error without logging."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "Returning a dict from a Flask view is a Flask extension; for clarity and compatibility, explicitly use jsonify."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Using yaml.load without a safe loader can execute arbitrary code. Use yaml.safe_load instead."
+        }
+      ]
+    },
+    {
+      "id": "sec_xss_template_011",
+      "category": "sec",
+      "elapsed_s": 11.37,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "line_end": 10,
+          "keywords": [
+            "xss",
+            "cross-site scripting",
+            "escape",
+            "sanitize",
+            "user input",
+            "inject",
+            "html"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Server-side template injection via user-controlled input in render_template_string."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using f-string to build template string and then passing to render_template_string causes unnecessary double parsing of the template."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Using f-string to build HTML templates bypasses Flask's template auto-escaping and can lead to cross-site scripting vulnerabilities."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "description": "User input is directly interpolated into an HTML template string, leading to a Server-Side Template Injection (SSTI) vulnerability. An attacker can inject Jinja2 template expressions to execute arbitrary code."
+        }
+      ]
+    },
+    {
+      "id": "sec_ssrf_012",
+      "category": "sec",
+      "elapsed_s": 12.26,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 12,
+          "line_end": 12,
+          "keywords": [
+            "ssrf",
+            "server-side request forgery",
+            "whitelist",
+            "user-controlled url",
+            "internal network"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "description": "Server-Side Request Forgery (SSRF) vulnerability allows attacker to make requests to internal services via the 'url' parameter."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Blocking I/O call in an async context blocks the Flask worker thread, reducing throughput."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Missing error handling for requests.get which can raise various exceptions like ConnectionError, Timeout, etc."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "The variable name 'url' shadows the built-in urllib module, which can cause confusion."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Server-Side Request Forgery (SSRF): user-controlled URL is fetched without validation, allowing access to internal services."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "No URL scheme validation; could allow file:// or other dangerous schemes."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "No connection pooling or session reuse; consider using requests.Session for repeated requests."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Missing error handling for network failures or invalid URLs; consider wrapping in try/except."
+        }
+      ]
+    },
+    {
+      "id": "sec_weak_random_013",
+      "category": "sec",
+      "elapsed_s": 11.86,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 7,
+          "line_end": 7,
+          "keywords": [
+            "cryptographically secure",
+            "secrets",
+            "random",
+            "predictable",
+            "token",
+            "insecure"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Uses the insecure random module instead of secrets for generating session tokens, making tokens predictable."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "Password reset token is passed as a query parameter in the URL, which can be leaked via referrer headers, browser history, or server logs."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using random.choice for token generation is not cryptographically secure."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 6,
+          "description": "Using random.choice in a loop for each character is slower than using random.choices which generates all characters at once."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 10,
+          "description": "The reset link is constructed using f-string without URL encoding the parameters."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "Use of random.choice() instead of secrets.choice() for generating tokens makes them predictable and insecure for session or password reset tokens."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 11,
+          "description": "Including user_id directly in the reset link URL exposes internal user identifiers and may allow enumeration attacks."
+        }
+      ]
+    },
+    {
+      "id": "sec_timing_attack_014",
+      "category": "sec",
+      "elapsed_s": 10.94,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 2,
+          "line_end": 6,
+          "keywords": [
+            "timing attack",
+            "hmac.compare_digest",
+            "constant time",
+            "early exit",
+            "side channel"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 1,
+          "description": "Timing side-channel vulnerability allows attacker to brute-force the API key character by character by measuring response time differences."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 2,
+          "description": "Manual character-by-character comparison is slower and less idiomatic than using a constant-time comparison library or a simple equality check."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "The function manually compares two strings character by character instead of using a direct equality check."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 1,
+          "description": "Timing attack vulnerability: comparison is not constant-time, allowing attacker to deduce valid key length and character positions by measuring response time."
+        }
+      ]
+    },
+    {
+      "id": "sec_open_redirect_015",
+      "category": "sec",
+      "elapsed_s": 12.27,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "open redirect",
+            "redirect",
+            "user input",
+            "external",
+            "validate",
+            "whitelist"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Open redirect vulnerability: the 'next' parameter is used directly in a redirect without validation, allowing an attacker to redirect users to arbitrary external sites."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Unvalidated redirect using user-supplied 'next' parameter can lead to open redirect vulnerability, but also indicates missing input validation logic."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Unvalidated redirect parameter could lead to open redirect, but performance-wise the redirect is a simple 302 with no heavy computation."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "Function is very short but lacks type annotations for the return value, which would improve readability."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Open redirect vulnerability: the 'next' parameter is not validated, allowing an attacker to redirect users to arbitrary external URLs."
+        }
+      ]
+    },
+    {
+      "id": "sec_xxe_lxml_016",
+      "category": "sec",
+      "elapsed_s": 12.57,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 10,
+          "line_end": 10,
+          "keywords": [
+            "xxe",
+            "xml external entity",
+            "no_network",
+            "resolve_entities",
+            "injection",
+            "entity"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "description": "XML External Entity (XXE) injection vulnerability: XMLParser is used without disabling entity resolution, allowing attackers to read local files or perform SSRF."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "Creating a new XMLParser instance on every request adds unnecessary overhead."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 10,
+          "description": "The variable 'parser' is unused because etree.fromstring uses a default parser when no parser is passed."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 11,
+          "description": "Using len(doc) returns the number of child elements, but this is not immediately clear and could be confused with string length."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Missing type annotation for the return value of parse_xml, which would improve readability."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "XML parsing without disabling external entities is vulnerable to XXE attacks. Use etree.XMLParser(resolve_entities=False, no_network=True)."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "The parser does not disable DTD processing, which can lead to entity expansion attacks. Consider setting load_dtd=False."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Creating a new XMLParser instance on every request is inefficient. Define the parser once outside the function."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Unused variable 'parser' is assigned but not used; etree.fromstring accepts parser as second argument but it's not needed if defaults are fine."
+        }
+      ]
+    },
+    {
+      "id": "sec_zip_slip_017",
+      "category": "sec",
+      "elapsed_s": 13.0,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 9,
+          "line_end": 9,
+          "keywords": [
+            "zip slip",
+            "path traversal",
+            "directory traversal",
+            "resolve",
+            "../",
+            "outside"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Path traversal vulnerability: entry.filename is used directly without validation, allowing a malicious zip file to write files outside dest_dir via '..' sequences."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Calling zf.extract(entry, dest_dir) inside a loop causes redundant path resolution and file extraction overhead for each entry."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Variable 'target_path' is computed but never used; it is only appended to the result list."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 7,
+          "description": "The function does not handle potential path traversal vulnerabilities or invalid zip entries."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 3,
+          "description": "The function lacks error handling for cases like missing zip file, corrupted archive, or permission issues."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 8,
+          "description": "Path traversal vulnerability: entry.filename is not sanitized, allowing an attacker to write files outside dest_dir via '..' sequences or absolute paths."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 9,
+          "description": "Potential symlink attack: zipfile.extract() follows symlinks inside the archive, which could overwrite files outside dest_dir."
+        },
+        {
+          "category": "performance",
+          "severity": "suggestion",
+          "line_start": 9,
+          "description": "Using zf.extract() re-validates paths internally; consider using zf.extractall() for batch extraction to reduce overhead."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 8,
+          "description": "Variable target_path is computed but not used for extraction; zf.extract() recalculates the path internally, making the variable redundant."
+        }
+      ]
+    },
+    {
+      "id": "sec_md5_password_018",
+      "category": "sec",
+      "elapsed_s": 13.35,
+      "expected": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "line_end": 6,
+          "keywords": [
+            "md5",
+            "bcrypt",
+            "argon2",
+            "salt",
+            "password hash",
+            "insecure hash",
+            "broken"
+          ]
+        }
+      ],
+      "multi_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "MD5 is a weak cryptographic hash algorithm vulnerable to collision and preimage attacks, making password hashes easily crackable."
+        },
+        {
+          "category": "performance",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "Using MD5 for password hashing is computationally cheap, making brute-force attacks faster, but this is a security concern; for performance, consider that MD5 is not designed to be slow like bcrypt/argon2, which would increase CPU cost per attempt."
+        },
+        {
+          "category": "style",
+          "severity": "warning",
+          "line_start": 6,
+          "description": "MD5 is a weak hashing algorithm and should not be used for password storage."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Imports are not grouped according to PEP8 conventions (stdlib imports should be separated)."
+        }
+      ],
+      "baseline_predicted": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "line_start": 6,
+          "description": "MD5 is a weak hash algorithm and should not be used for password storage. Use a strong, slow hash like bcrypt, Argon2, or PBKDF2."
+        },
+        {
+          "category": "security",
+          "severity": "warning",
+          "line_start": 8,
+          "description": "Potential SQL injection if username is not properly sanitized. Although parameterized queries are used, ensure username is validated before insertion."
+        },
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "line_start": 1,
+          "description": "Unused import 'hashlib' is not needed if only MD5 is used; consider removing or replacing with a secure hashing library."
+        }
+      ]
+    }
+  ],
+  "multi_agent": {
+    "precision": 0.2,
+    "recall": 0.9473684210526315,
+    "f1": 0.3302752293577982,
+    "per_category": {
+      "security": {
+        "precision": 0.8181818181818182,
+        "recall": 0.9473684210526315,
+        "f1": 0.8780487804878049
+      }
+    }
+  },
+  "single_llm_baseline": {
+    "precision": 0.3103448275862069,
+    "recall": 0.9473684210526315,
+    "f1": 0.4675324675324675,
+    "per_category": {
+      "security": {
+        "precision": 0.5,
+        "recall": 0.9473684210526315,
+        "f1": 0.6545454545454545
+      }
+    }
+  }
+}
