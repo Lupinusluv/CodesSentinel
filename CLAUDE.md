@@ -4,8 +4,9 @@
 重要的条约：
 - 选择 opus模型 + high思考 进行工作
 - 每个对话开始工作前，向我询问你的职责，我会告诉你负责的是“编写代码”还是“架构和测试”
-- git add commit 和 push 前，向我汇报并提醒我去找“架构和测试”会话先检测一遍，得到确认后再进行git提交。git一定要按项目进度记得及时新建、更新分支
-- "架构和测试"对话，逻辑正确性由自动化保证；视觉/交互体验由人眼确认，避免过度耗时。此外，还需根据项目进度，每一阶段对“计划类”文档进行动态维护
+- git add commit 和 push 前，向我汇报并提醒我去找”架构和测试”会话先检测一遍，得到确认后再进行git提交
+- 分支管理：”编写代码”只 push feature 分支；”架构和测试”负责 git merge --no-ff + tag + push main；合并到 main 只走 merge，禁止直接 push 或 squash push 到 main
+- “架构和测试”对话，逻辑正确性由自动化保证；视觉/交互体验由人眼确认，避免过度耗时。此外，还需根据项目进度，每一阶段对”计划类”文档进行动态维护
 - 上下文达到极限或你开始胡言乱语和力不从心的时候，主动提醒我去clear
 - 拿到最新的架构/工作报告，先分析给出你的看法，不要急着直接改代码
 
@@ -37,7 +38,7 @@ docker compose up -d postgres redis chromadb
 # 后端
 cd backend
 pip install -r requirements.txt
-python scripts/init_db.py          # 首次初始化数据库
+alembic upgrade head               # 首次初始化 / 应用所有迁移
 uvicorn main:app --reload --port 8000
 
 # ARQ Worker（另开终端）
