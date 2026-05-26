@@ -26,7 +26,7 @@ class Review(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     pr_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     status: Mapped[ReviewStatus] = mapped_column(
-        Enum(ReviewStatus, name="review_status_enum"),
+        Enum(ReviewStatus, name="review_status_enum", create_type=False),
         nullable=False,
         default=ReviewStatus.pending,
     )

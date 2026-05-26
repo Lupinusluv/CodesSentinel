@@ -11,10 +11,11 @@ services:
       - .docker-data/postgres:/var/lib/postgresql/data
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/10-extensions.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U codessentinel"]
+      test: ["CMD-SHELL", "pg_isready -U codessentinel -h localhost -d codessentinel"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
@@ -45,7 +46,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 6

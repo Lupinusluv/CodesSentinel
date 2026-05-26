@@ -17,7 +17,7 @@ class Repository(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "repositories"
 
     platform: Mapped[Platform] = mapped_column(
-        Enum(Platform, name="platform_enum"), nullable=False
+        Enum(Platform, name="platform_enum", create_type=False), nullable=False
     )
     url: Mapped[str] = mapped_column(String(512), nullable=False, unique=True)
     webhook_secret: Mapped[str] = mapped_column(String(128), nullable=False)

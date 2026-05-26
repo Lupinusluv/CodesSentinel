@@ -29,10 +29,10 @@ class Issue(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
     )
     category: Mapped[IssueCategory] = mapped_column(
-        Enum(IssueCategory, name="issue_category_enum"), nullable=False
+        Enum(IssueCategory, name="issue_category_enum", create_type=False), nullable=False
     )
     severity: Mapped[IssueSeverity] = mapped_column(
-        Enum(IssueSeverity, name="issue_severity_enum"), nullable=False
+        Enum(IssueSeverity, name="issue_severity_enum", create_type=False), nullable=False
     )
     file_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
     line_start: Mapped[int | None] = mapped_column(Integer, nullable=True)

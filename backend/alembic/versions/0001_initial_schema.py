@@ -24,17 +24,7 @@ def upgrade() -> None:
     # ── pgvector 扩展 ─────────────────────────────────────────────────────────
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
-    # ── PostgreSQL 枚举类型 ───────────────────────────────────────────────────
-    op.execute("CREATE TYPE platform_enum AS ENUM ('github', 'gitlab', 'gitee')")
-    op.execute(
-        "CREATE TYPE review_status_enum AS ENUM ('pending', 'running', 'done', 'failed')"
-    )
-    op.execute(
-        "CREATE TYPE issue_category_enum AS ENUM ('security', 'performance', 'style')"
-    )
-    op.execute(
-        "CREATE TYPE issue_severity_enum AS ENUM ('critical', 'warning', 'suggestion')"
-    )
+    # 枚举类型由 SQLAlchemy 在首次引用的 create_table 时自动创建（默认 create_type=True 行为）
 
     # ── repositories ──────────────────────────────────────────────────────────
     op.create_table(
@@ -54,7 +44,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "platform",
-            sa.Enum("github", "gitlab", "gitee", name="platform_enum", create_type=False),
+            sa.Enum("github", "gitlab", "gitee", name="platform_enum"),
             nullable=False,
         ),
         sa.Column("url", sa.String(512), nullable=False, unique=True),
@@ -90,7 +80,6 @@ def upgrade() -> None:
             sa.Enum(
                 "pending", "running", "done", "failed",
                 name="review_status_enum",
-                create_type=False,
             ),
             nullable=False,
             server_default="pending",
@@ -131,7 +120,6 @@ def upgrade() -> None:
             sa.Enum(
                 "security", "performance", "style",
                 name="issue_category_enum",
-                create_type=False,
             ),
             nullable=False,
         ),
@@ -140,7 +128,6 @@ def upgrade() -> None:
             sa.Enum(
                 "critical", "warning", "suggestion",
                 name="issue_severity_enum",
-                create_type=False,
             ),
             nullable=False,
         ),
