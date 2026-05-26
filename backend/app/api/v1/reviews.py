@@ -6,7 +6,7 @@ from sqlalchemy import case, select
 from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import DBSessionDep, get_arq_pool
-from app.models.issue import Issue
+from app.models.issue import Issue, IssueSeverity
 from app.models.review import Review, ReviewStatus
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
@@ -91,7 +91,14 @@ async def get_review(review_id: str, db: DBSessionDep) -> ReviewResponse:
     if review is None:
         raise HTTPException(status_code=404, detail="Review not found")
 
-    severity_order = case({"critical": 0, "warning": 1, "suggestion": 2}, value=Issue.severity)
+    severity_order = case(
+        {
+            IssueSeverity.critical: 0,
+            IssueSeverity.warning: 1,
+            IssueSeverity.suggestion: 2,
+        },
+        value=Issue.severity,
+    )
     result = await db.execute(
         select(Issue).where(Issue.review_id == uid).order_by(severity_order)
     )
