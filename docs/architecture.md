@@ -320,10 +320,11 @@ main                              始终保持可演示状态，每个里程碑�
 
 | Tag | 时间 | 内容 |
 |-----|------|------|
-| `v0.1.0` | 第 1 个月末 | MVP：单 LLM 审查 + 流式输出 + 最简前端 |
-| `v0.2.0` | 第 2 个月末 | Multi-Agent 并行 + RAG 代码库理解 |
-| `v0.3.0` | 第 3 个月末 | GitHub/GitLab 集成 + 完整前端 Dashboard |
-| `v1.0.0` | 第 4 个月末 | 评测指标 + 测试 + 面试稳定版 |
+| `v0.1.0` | 2026-05 | MVP：单 LLM 审查 + 流式输出 + 最简前端 |
+| `v0.2.0` | 2026-05 | Multi-Agent 并行 + RAG 代码库理解 |
+| `v0.3.0` | 2026-05-26 | GitHub Webhook + 完整前端 Dashboard + eval harness（n=40 P/R/F1）+ Docker Compose 全栈 + Metrics API |
+| `v0.4.0` | 计划中 | AutoFix MVP（生成 Patch + AST 校验 + diff 展示）+ 测试覆盖补充 |
+| `v1.0.0` | 计划中 | 面试稳定版：GitLab 适配 + 性能调优 + 完整测试 |
 
 ### 为什么用分支
 

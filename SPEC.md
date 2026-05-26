@@ -8,7 +8,7 @@
 
 ---
 
-## 当前实现进度（2026-05-24 更新）
+## 当前实现进度（2026-05-26 更新，v0.3.0 已 tag）
 
 ### 实际进度 vs 计划
 
@@ -16,60 +16,60 @@
 |------|---------|---------|
 | 第1个月（6月） | MVP + 流式输出 + 最简前端 | ✅ 已完成 |
 | 第2个月（7月） | Multi-Agent 并行 + RAG 管道 | ✅ 已完成 |
-| 第3个月（8月） | Git 平台集成 + 完整前端 Dashboard | ⚠️ 前端 100%，Git 集成 0% |
-| 第4个月（9月） | 评测指标 + 测试 + 优化 + 面试准备 | ⏳ 未开始 |
+| 第3个月（8月） | Git 平台集成 + 完整前端 Dashboard | ✅ GitHub Webhook + 前端全部完成；GitLab/Gitee 适配器仍为空（可选补充） |
+| 第4个月（9月） | 评测指标 + AutoFix + 优化 + 面试准备 | ⏳ 评测集已完成；AutoFix 未实现 |
 
-> 现在是 5 月底，整体进度超前约 2 个月。
+> 现在是 5 月底，整体进度超前约 2-3 个月。v0.3.0 额外交付了 eval harness（n=40 样本，P/R/F1 量化指标）、Docker Compose 全栈化、Metrics API。
 
 ### 代码量现状
 
 | 模块 | 当前行数 | 现实终点预估 |
 |------|---------|------------|
-| 后端 (app/) | 1,229 行 | ~2,800 行 |
-| 前端 (src/) | 912 行 | ~1,400 行 |
-| 测试 (tests/) | 242 行 | ~700 行 |
-| **合计** | **2,383 行** | **~4,900 行** |
+| 后端 (app/) | 2,240 行 | ~2,800 行 |
+| 前端 (src/) | 1,121 行 | ~1,400 行 |
+| 测试 (tests/) | 197 行 | ~500 行 |
+| 评测脚本 (scripts/) | 357 行 | ~400 行 |
+| **合计** | **~3,915 行** | **~5,100 行** |
 
-> 原规划 10,000 行不现实。4,900 行把所有功能做完比凑行数更有价值，面试考的是能讲清楚设计决策，不是数行数。
+> 原规划 10,000 行不现实。5,100 行把所有功能做完比凑行数更有价值，面试考的是能讲清楚设计决策，不是数行数。
 
 ### 已完整实现的模块
 
 **后端**
-- `agents/`：graph.py、state.py、prompts.py、security/performance/style/synthesis_agent.py、llm.py、utils.py
+- `agents/`：graph.py、state.py、prompts.py、security/performance/style/synthesis_agent.py、utils.py（lane 隔离 + 置信度约束已调优）
 - `rag/`：chunker.py（AST分块）、embeddings.py、indexer.py、retriever.py（混合检索）
-- `api/v1/`：reviews.py（CRUD）、ws.py（WebSocket）、health.py
+- `api/v1/`：reviews.py（CRUD + severity 排序）、repositories.py（完整 CRUD）、webhooks.py（GitHub 完整验签 + 入队）、metrics.py（SQL 聚合）、ws.py（WebSocket）、health.py
 - `models/`：review.py、issue.py、repository.py、code_chunk.py
-- `tasks/`：review_task.py（ARQ任务主逻辑）、worker.py
+- `tasks/`：review_task.py（ARQ 审查主逻辑）、index_task.py（仓库 RAG 索引）、worker.py
 - `core/`：config.py、dependencies.py、logging.py
+- `platform/`：base.py（GitPlatformAdapter 抽象基类）、adapters/github.py（完整实现）
+- `scripts/run_eval.py`：eval harness（n=40 样本，greedy bipartite P/R/F1 matching）
+- `scripts/eval_data/`：security / performance / style 三类各 10 个带标注样本
 
 **前端（全部完成）**
-- 5 个页面：NewReview、Dashboard、ReviewDetail、Repositories、Metrics
-- 7 个组件：Layout、ReviewCard、CodeViewer（Monaco封装+diff模式）、IssueList、StatusBadge、StreamOutput、useReview hook
-- React Router + NavLink 高亮路由
+- 5 个页面：NewReview、Dashboard（History）、ReviewDetail、Repositories、Metrics
+- 组件：Layout、ReviewCard、IssueList、StatusBadge、StreamOutput、useReview hook
+- React Router + NavLink 高亮路由；Monaco Editor 代码编辑器
+
+**基础设施**
+- Docker Compose：postgres（pgvector）+ redis + backend + worker + frontend 五服务健康检查链
+- Alembic 迁移：0001_initial_schema（4 enums + 5 tables）
 
 ### 空文件 / 占位存根（待实现）
 
 | 文件 | 状态 | 备注 |
 |------|------|------|
-| `platform/base.py` | 0 行 | GitPlatformAdapter 抽象基类 |
-| `platform/adapters/github.py` | 0 行 | **最高优先级** |
-| `platform/adapters/gitlab.py` | 0 行 | 结构同 GitHub，复制改造 |
-| `platform/adapters/gitee.py` | 0 行 | 结构同 GitHub，复制改造 |
-| `api/v1/webhooks.py` | 20 行 501 存根 | 需要真实签名验证+任务入队 |
-| `api/v1/repositories.py` | 20 行 501 存根 | 需要真实 CRUD |
-| `api/v1/metrics.py` | 14 行 501 存根 | 需要 SQL 统计查询 |
-| `sandbox/executor.py` | 0 行 | Docker exec 沙箱 |
-| `sandbox/validator.py` | 0 行 | 修复验证 |
+| `platform/adapters/gitlab.py` | 0 行 | 结构同 GitHub，按需补充 |
+| `platform/adapters/gitee.py` | 0 行 | 结构同 GitHub，按需补充 |
+| `sandbox/executor.py` | 0 行 | AutoFix 沙箱执行 |
+| `sandbox/validator.py` | 0 行 | AutoFix 修复验证 |
 | `agents/autofix_agent.py` | 0 行 | 自动修复 Agent |
-| `tasks/index_task.py` | 0 行 | ARQ 仓库索引任务 |
 
-### 下一步优先级
+### 下一步优先级（v0.4.0 方向）
 
-1. **GitHub Webhook 集成**（`platform/base.py` + `adapters/github.py` + `webhooks.py`）— 面试最高频追问点
-2. **Repositories API 真实 CRUD**（`repositories.py`）— 前端 Repos 页解锁
-3. **评测集**（`seed_eval_set.py` + 跑一次 P/R 数字）— **提前到 GitHub 集成完成后立刻做**，"精确率 82% vs baseline" 比任何功能描述都有杀伤力
-4. **Metrics API 真实查询**（`metrics.py`）— 有了评测数据后顺手实现
-5. **AutoFix**（AST 语法校验版，不做 Docker 沙箱）— 最后做，可作为加分项
+1. **AutoFix MVP**（`autofix_agent.py` + `sandbox/executor.py` + `sandbox/validator.py`）— 生成 Patch + AST 语法校验 + diff 展示，是面试现场最有视觉冲击力的 demo 功能
+2. **测试覆盖补充**（当前 197 行，目标 500 行）— integration tests 覆盖 review 全链路
+3. **GitLab 适配器**（可选，GitHub 已足够面试演示，GitLab 体现平台无关设计能力）
 
 ---
 
@@ -83,7 +83,7 @@
 | 自动修复 | 生成 Patch → AST 语法校验 → 展示 diff（不做 Docker 沙箱执行） | ⏳ 未实现 |
 | 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 | ✅ 已完成 |
 | Web Dashboard | 审查历史、统计指标、代码 diff 查看器 | ✅ 已完成 |
-| 可量化指标 | 检测精确率、响应延迟、修复成功率 | ⏳ 未实现 |
+| 可量化指标 | 检测精确率、响应延迟、修复成功率 | ✅ eval harness 完成（n=40，P/R/F1）；修复成功率待 AutoFix 实现后补充 |
 
 ---
 
@@ -171,49 +171,51 @@ codessentinel/
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/
-│   │   │   ├── reviews.py       ✅ 审查 CRUD，触发审查
-│   │   │   ├── repositories.py  ⏳ 501 存根，待实现
-│   │   │   ├── webhooks.py      ⏳ 501 存根，待实现
-│   │   │   ├── metrics.py       ⏳ 501 存根，待实现
+│   │   │   ├── reviews.py       ✅ 审查 CRUD，severity 排序
+│   │   │   ├── repositories.py  ✅ 完整 CRUD
+│   │   │   ├── webhooks.py      ✅ GitHub 验签 + 入队；GitLab/Gitee 存根
+│   │   │   ├── metrics.py       ✅ SQL 聚合（总数/耗时/分布）
+│   │   │   ├── health.py        ✅ /api/v1/health
 │   │   │   └── ws.py            ✅ WebSocket 实时推送
 │   │   ├── agents/
 │   │   │   ├── graph.py         ✅ LangGraph 图定义（主入口）
 │   │   │   ├── state.py         ✅ 图状态数据结构
-│   │   │   ├── prompts.py       ✅ 所有 Agent 的 System Prompt
+│   │   │   ├── prompts.py       ✅ 所有 Agent 的 System Prompt（lane 隔离已调优）
 │   │   │   ├── security_agent.py  ✅
 │   │   │   ├── performance_agent.py ✅
 │   │   │   ├── style_agent.py   ✅
 │   │   │   ├── synthesis_agent.py ✅
-│   │   │   └── autofix_agent.py ⏳ 0 行，待实现
+│   │   │   └── autofix_agent.py ⏳ 0 行，v0.4.0 实现
 │   │   ├── rag/
 │   │   │   ├── chunker.py       ✅ AST 级别代码分块
 │   │   │   ├── embeddings.py    ✅ Embedding 封装
 │   │   │   ├── indexer.py       ✅ 仓库全量索引
 │   │   │   └── retriever.py     ✅ 混合检索（语义 + BM25）
 │   │   ├── platform/
-│   │   │   ├── base.py          ⏳ 0 行，待实现
+│   │   │   ├── base.py          ✅ GitPlatformAdapter 抽象基类
 │   │   │   └── adapters/
-│   │   │       ├── github.py    ⏳ 0 行，最高优先
-│   │   │       ├── gitlab.py    ⏳ 0 行
-│   │   │       └── gitee.py     ⏳ 0 行
+│   │   │       ├── github.py    ✅ 完整实现
+│   │   │       ├── gitlab.py    ⏳ 0 行，按需补充
+│   │   │       └── gitee.py     ⏳ 0 行，按需补充
 │   │   ├── sandbox/
-│   │   │   ├── executor.py      ⏳ 0 行，待实现
-│   │   │   └── validator.py     ⏳ 0 行，待实现
+│   │   │   ├── executor.py      ⏳ 0 行，v0.4.0 实现
+│   │   │   └── validator.py     ⏳ 0 行，v0.4.0 实现
 │   │   ├── tasks/
 │   │   │   ├── review_task.py   ✅ 异步审查任务（ARQ Worker）
-│   │   │   └── index_task.py    ⏳ 0 行，待实现
+│   │   │   └── index_task.py    ✅ ARQ 仓库 RAG 索引任务
 │   │   ├── models/              ✅ 全部已实现
 │   │   └── core/                ✅ 全部已实现
+│   ├── alembic/versions/        ✅ 0001_initial_schema（4 enums + 5 tables）
 │   ├── tests/
-│   │   ├── unit/                ⚠️ 骨架存在，覆盖率不足
-│   │   └── integration/         ⚠️ 骨架存在，覆盖率不足
+│   │   ├── unit/                ⚠️ 197 行，覆盖率不足，v0.4.0 补充
+│   │   └── integration/         ⚠️ 骨架存在，待补充
+│   ├── scripts/
+│   │   ├── run_eval.py          ✅ eval harness（n=40，P/R/F1）
+│   │   └── eval_data/           ✅ security / performance / style 各 10 样本
 │   ├── main.py
 │   ├── requirements.txt
 │   └── Dockerfile
-├── frontend/src/                ✅ 全部已实现
-├── scripts/
-│   ├── seed_eval_set.py         ⏳ 第4个月实现
-│   └── dev-*.ps1                ✅ 开发启停脚本
+├── frontend/src/                ✅ 全部已实现（5 页面 + 组件 + hooks）
 ├── docker-compose.yml
 ├── .env.example
 └── SPEC.md
