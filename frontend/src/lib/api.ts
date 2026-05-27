@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Review } from './types'
+import type { PatchListResponse, Review } from './types'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -18,6 +18,14 @@ export const reviewApi = {
   get: (reviewId: string) => http.get<Review>(`/reviews/${reviewId}`),
 
   list: () => http.get<Review[]>('/reviews'),
+}
+
+export const patchesApi = {
+  trigger: (reviewId: string) =>
+    http.post<{ review_id: string; status: string }>(`/reviews/${reviewId}/autofix`),
+
+  list: (reviewId: string) =>
+    http.get<PatchListResponse>(`/reviews/${reviewId}/patches`),
 }
 
 export interface Repository {

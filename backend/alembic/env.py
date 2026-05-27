@@ -18,6 +18,7 @@ import app.models.repository  # noqa: F401
 import app.models.review      # noqa: F401
 import app.models.issue       # noqa: F401
 import app.models.code_chunk  # noqa: F401
+import app.models.patch       # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

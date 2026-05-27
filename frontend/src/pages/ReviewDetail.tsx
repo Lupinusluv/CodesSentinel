@@ -5,6 +5,7 @@ import type { Review } from '../lib/types'
 import { IssueList } from '../components/IssueList'
 import { StatusBadge } from '../components/StatusBadge'
 import { CodeViewer } from '../components/CodeViewer'
+import { PatchPanel } from '../components/PatchPanel'
 
 export function ReviewDetail() {
   const { reviewId } = useParams<{ reviewId: string }>()
@@ -12,7 +13,7 @@ export function ReviewDetail() {
   const [review, setReview]   = useState<Review | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
-  const [tab, setTab]         = useState<'issues' | 'code' | 'report'>('issues')
+  const [tab, setTab]         = useState<'issues' | 'code' | 'report' | 'patches'>('issues')
 
   useEffect(() => {
     if (!reviewId) return
@@ -70,7 +71,7 @@ export function ReviewDetail() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-800 shrink-0">
-        {(['issues', 'code', 'report'] as const).map(t => (
+        {(['issues', 'code', 'report', 'patches'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -81,8 +82,9 @@ export function ReviewDetail() {
             }`}
           >
             {t === 'issues' ? `Issues (${review.total_issues})`
-             : t === 'code'   ? 'Source Code'
-             : 'Report'}
+             : t === 'code'    ? 'Source Code'
+             : t === 'report'  ? 'Report'
+             : 'Auto Fix'}
           </button>
         ))}
       </div>
@@ -109,6 +111,15 @@ export function ReviewDetail() {
           <pre className="font-mono text-sm text-green-300 bg-slate-950 rounded-lg p-4 h-full overflow-y-auto whitespace-pre-wrap leading-relaxed">
             {review.report_text || <span className="text-slate-500 italic">无报告文本</span>}
           </pre>
+        )}
+
+        {tab === 'patches' && (
+          <PatchPanel
+            reviewId={review.id}
+            language={review.language ?? 'python'}
+            reviewStatus={review.status}
+            totalIssues={review.total_issues}
+          />
         )}
       </div>
     </div>

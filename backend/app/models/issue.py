@@ -42,3 +42,7 @@ class Issue(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     fixed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     review: Mapped["Review"] = relationship(back_populates="issues")  # noqa: F821
+    patches: Mapped[list["Patch"]] = relationship(  # noqa: F821
+        back_populates="issue",
+        cascade="all, delete-orphan",
+    )

@@ -25,6 +25,27 @@ export interface Review {
   issues: Issue[]
 }
 
+export type PatchStatus = 'pending' | 'done' | 'failed'
+
+export interface Patch {
+  id: string
+  review_id: string
+  issue_id: string
+  original_code: string
+  fixed_code: string
+  diff: string
+  syntax_valid: boolean
+  error_msg: string | null
+  status: PatchStatus
+  created_at: string
+}
+
+export interface PatchListResponse {
+  review_id: string
+  total: number
+  patches: Patch[]
+}
+
 export type AgentName = 'security' | 'performance' | 'style' | 'synthesis'
 
 export type StreamMessage =
