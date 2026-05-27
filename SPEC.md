@@ -8,7 +8,7 @@
 
 ---
 
-## 当前实现进度（2026-05-26 更新，v0.3.0 已 tag）
+## 当前实现进度（2026-05-27 更新，v0.4.0 已 tag）
 
 ### 实际进度 vs 计划
 
@@ -17,19 +17,19 @@
 | 第1个月（6月） | MVP + 流式输出 + 最简前端 | ✅ 已完成 |
 | 第2个月（7月） | Multi-Agent 并行 + RAG 管道 | ✅ 已完成 |
 | 第3个月（8月） | Git 平台集成 + 完整前端 Dashboard | ✅ GitHub Webhook + 前端全部完成；GitLab/Gitee 适配器仍为空（可选补充） |
-| 第4个月（9月） | 评测指标 + AutoFix + 优化 + 面试准备 | ⏳ 评测集已完成；AutoFix 未实现 |
+| 第4个月（9月） | 评测指标 + AutoFix + 优化 + 面试准备 | ✅ 评测集完成；AutoFix MVP 完成（v0.4.0） |
 
-> 现在是 5 月底，整体进度超前约 2-3 个月。v0.3.0 额外交付了 eval harness（n=40 样本，P/R/F1 量化指标）、Docker Compose 全栈化、Metrics API。
+> 现在是 5 月底，整体进度超前约 3 个月，全部核心功能已实现。
 
 ### 代码量现状
 
 | 模块 | 当前行数 | 现实终点预估 |
 |------|---------|------------|
-| 后端 (app/) | 2,240 行 | ~2,800 行 |
-| 前端 (src/) | 1,121 行 | ~1,400 行 |
-| 测试 (tests/) | 197 行 | ~500 行 |
+| 后端 (app/) | ~2,700 行 | ~2,800 行 |
+| 前端 (src/) | ~1,290 行 | ~1,400 行 |
+| 测试 (tests/) | ~420 行 | ~500 行 |
 | 评测脚本 (scripts/) | 357 行 | ~400 行 |
-| **合计** | **~3,915 行** | **~5,100 行** |
+| **合计** | **~4,767 行** | **~5,100 行** |
 
 > 原规划 10,000 行不现实。5,100 行把所有功能做完比凑行数更有价值，面试考的是能讲清楚设计决策，不是数行数。
 
@@ -53,23 +53,23 @@
 
 **基础设施**
 - Docker Compose：postgres（pgvector）+ redis + backend + worker + frontend 五服务健康检查链
-- Alembic 迁移：0001_initial_schema（4 enums + 5 tables）
+- Alembic 迁移：0001_initial_schema（4 enums + 5 tables）；0002_add_patches_table（patch_status_enum + patches 表）
 
-### 空文件 / 占位存根（待实现）
+### 空文件 / 占位存根
 
 | 文件 | 状态 | 备注 |
 |------|------|------|
-| `platform/adapters/gitlab.py` | 0 行 | 结构同 GitHub，按需补充 |
-| `platform/adapters/gitee.py` | 0 行 | 结构同 GitHub，按需补充 |
-| `sandbox/executor.py` | 0 行 | AutoFix 沙箱执行 |
-| `sandbox/validator.py` | 0 行 | AutoFix 修复验证 |
-| `agents/autofix_agent.py` | 0 行 | 自动修复 Agent |
+| `platform/adapters/gitlab.py` | 0 行 | 结构同 GitHub，按需补充（可选） |
+| `platform/adapters/gitee.py` | 0 行 | 结构同 GitHub，按需补充（可选） |
+| `sandbox/executor.py` | ✅ 已实现 | Python ast.parse + node --check |
+| `sandbox/validator.py` | ✅ 已实现 | validate_patch + make_unified_diff |
+| `agents/autofix_agent.py` | ✅ 已实现 | generate→validate 两节点 LangGraph 图 |
 
-### 下一步优先级（v0.4.0 方向）
+### 下一步优先级（v0.5.0 方向，可选）
 
-1. **AutoFix MVP**（`autofix_agent.py` + `sandbox/executor.py` + `sandbox/validator.py`）— 生成 Patch + AST 语法校验 + diff 展示，是面试现场最有视觉冲击力的 demo 功能
-2. **测试覆盖补充**（当前 197 行，目标 500 行）— integration tests 覆盖 review 全链路
-3. **GitLab 适配器**（可选，GitHub 已足够面试演示，GitLab 体现平台无关设计能力）
+1. **GitLab 适配器** — 体现平台无关设计能力，可选补充
+2. **AutoFix 片段上下文重建** — 当前 AST 校验对行级片段成功率低（已知局限），可扩展为全函数上下文替换
+3. **面试准备** — 梳理设计决策文档、准备 demo 剧本
 
 ---
 
@@ -80,10 +80,10 @@
 | 多平台接入 | GitHub Webhook 完整实现；GitPlatformAdapter 接口支持多平台扩展 | ⏳ 适配器未实现 |
 | 多 Agent 并行审查 | 安全/性能/规范三路并行，最终聚合 | ✅ 已完成 |
 | RAG 代码库理解 | AST 分块 + pgvector 检索；Webhook 模式注入仓库上下文，paste 模式无 RAG | ✅ 管道已完成，Webhook 集成后生效 |
-| 自动修复 | 生成 Patch → AST 语法校验 → 展示 diff（不做 Docker 沙箱执行） | ⏳ 未实现 |
+| 自动修复 | 生成 Patch → AST 语法校验 → Monaco DiffEditor 展示（不做 Docker 沙箱执行） | ✅ MVP 完成（v0.4.0） |
 | 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 | ✅ 已完成 |
 | Web Dashboard | 审查历史、统计指标、代码 diff 查看器 | ✅ 已完成 |
-| 可量化指标 | 检测精确率、响应延迟、修复成功率 | ✅ eval harness 完成（n=40，P/R/F1）；修复成功率待 AutoFix 实现后补充 |
+| 可量化指标 | 检测精确率、响应延迟、修复成功率 | ✅ eval harness 完成（n=40，P/R/F1）；修复成功率可从 patches 表 syntax_valid 字段统计 |
 
 ---
 
