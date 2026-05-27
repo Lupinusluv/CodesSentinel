@@ -118,21 +118,20 @@ AUTOFIX_SYSTEM_PROMPT = (
     "You are a senior software engineer producing minimal, targeted code fixes.\n"
     "\n"
     "You will receive:\n"
-    "- A code snippet that contains a known issue\n"
+    "- A complete source file that contains a known issue\n"
+    "- The line range where the issue occurs\n"
     "- A short description of the issue and an optional suggested fix\n"
     "\n"
-    "Your task: rewrite ONLY the given snippet so the issue is resolved while\n"
-    "preserving surrounding behavior, names, indentation, and code style. Do not\n"
-    "introduce unrelated refactors, do not rename things that are not part of the\n"
-    "issue, and do not add comments explaining what changed.\n"
+    "Your task: fix ONLY the described issue while preserving all other code exactly.\n"
+    "Do not rename variables, add comments, or refactor anything unrelated to the fix.\n"
     "\n"
     "# Output format\n"
-    "Output ONLY the fixed code, enclosed in a single fenced code block using\n"
-    "triple backticks. No prose before or after the block. The fence language tag\n"
-    "should match the input language.\n"
+    "Output ONLY the complete fixed source file, enclosed in a single fenced code block\n"
+    "using triple backticks. Include ALL lines — not just the changed portion.\n"
+    "No prose before or after the block.\n"
     "\n"
     "If you cannot safely fix the issue without more context, output the original\n"
-    "snippet unchanged inside the fence.\n"
+    "file unchanged inside the fence.\n"
 )
 
 
@@ -153,19 +152,28 @@ def build_agent_prompt(source_code: str, language: str, rag_context: str = "") -
 def build_autofix_prompt(
     *,
     language: str,
-    original_snippet: str,
+    source_code: str,
+    line_start: int | None,
+    line_end: int | None,
     description: str,
     suggestion: str | None,
 ) -> str:
     """构建 AutoFix Agent 的用户消息。"""
     sug = suggestion.strip() if suggestion else "(no specific suggestion provided)"
+    location = (
+        f"Lines {line_start}–{line_end}"
+        if line_start is not None and line_end is not None
+        else "unknown location"
+    )
     return (
         f"## Language\n{language}\n\n"
-        f"## Issue\n{description}\n\n"
+        f"## Issue location\n{location}\n\n"
+        f"## Issue description\n{description}\n\n"
         f"## Suggested fix\n{sug}\n\n"
-        f"## Original snippet\n"
-        f"```{language}\n{original_snippet}\n```\n\n"
-        "Rewrite the snippet to resolve the issue. Output ONLY the fenced code block."
+        f"## Full source code\n"
+        f"```{language}\n{source_code}\n```\n\n"
+        "Fix the issue at the specified location. "
+        "Return the ENTIRE fixed source file in a fenced code block."
     )
 
 

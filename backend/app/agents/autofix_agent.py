@@ -76,18 +76,6 @@ def _extract_code(text: str) -> str:
     return cleaned.strip("\n")
 
 
-def _slice_source(source: str, line_start: int, line_end: int) -> str:
-    """按 1-based 闭区间截取源码片段。"""
-    lines = source.splitlines(keepends=True)
-    if not lines:
-        return ""
-    start = max(1, line_start) - 1
-    end = min(len(lines), line_end)
-    if end <= start:
-        return ""
-    return "".join(lines[start:end])
-
-
 def _failed_patch(issue_id: str, *, original: str = "", reason: str) -> PatchOutput:
     return PatchOutput(
         issue_id=issue_id,
@@ -105,18 +93,16 @@ def _failed_patch(issue_id: str, *, original: str = "", reason: str) -> PatchOut
 async def _generate_one(
     source_code: str, language: str, issue: IssueRef
 ) -> PatchOutput:
-    if issue.line_start is None or issue.line_end is None:
-        return _failed_patch(issue.issue_id, reason="issue missing line range; skipped")
-
-    original_snippet = _slice_source(source_code, issue.line_start, issue.line_end)
-    if not original_snippet.strip():
-        return _failed_patch(issue.issue_id, reason="line range yields empty snippet")
+    if not source_code.strip():
+        return _failed_patch(issue.issue_id, reason="empty source code")
 
     messages = [
         SystemMessage(content=AUTOFIX_SYSTEM_PROMPT),
         HumanMessage(content=build_autofix_prompt(
             language=language,
-            original_snippet=original_snippet,
+            source_code=source_code,
+            line_start=issue.line_start,
+            line_end=issue.line_end,
             description=issue.description,
             suggestion=issue.suggestion,
         )),
@@ -127,18 +113,18 @@ async def _generate_one(
     except Exception as exc:
         log.warning("autofix_llm_error", issue_id=issue.issue_id, error=str(exc))
         return _failed_patch(
-            issue.issue_id, original=original_snippet, reason=f"LLM call failed: {exc}"
+            issue.issue_id, original=source_code, reason=f"LLM call failed: {exc}"
         )
 
     fixed = _extract_code(response.content or "")
     if not fixed:
         return _failed_patch(
-            issue.issue_id, original=original_snippet, reason="LLM returned empty fix"
+            issue.issue_id, original=source_code, reason="LLM returned empty fix"
         )
 
     return PatchOutput(
         issue_id=issue.issue_id,
-        original_code=original_snippet,
+        original_code=source_code,
         fixed_code=fixed,
         diff="",
         syntax_valid=False,
