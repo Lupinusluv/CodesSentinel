@@ -46,3 +46,7 @@ class Review(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="review",
         cascade="all, delete-orphan",
     )
+    patches: Mapped[list["Patch"]] = relationship(  # noqa: F821
+        back_populates="review",
+        cascade="all, delete-orphan",
+    )

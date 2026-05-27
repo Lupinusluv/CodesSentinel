@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import case, select
 from sqlalchemy.orm import selectinload
 
-from app.core.dependencies import DBSessionDep, get_arq_pool
+from app.core.dependencies import ArqPoolDep, DBSessionDep
 from app.models.issue import Issue, IssueSeverity
 from app.models.review import Review, ReviewStatus
 
@@ -59,6 +59,7 @@ async def list_reviews(db: DBSessionDep) -> list[ReviewResponse]:
 async def create_review(
     body: CreateReviewRequest,
     db: DBSessionDep,
+    arq: ArqPoolDep,
 ) -> dict:
     if not body.source_code.strip():
         raise HTTPException(status_code=400, detail="source_code cannot be empty")
@@ -74,7 +75,6 @@ async def create_review(
     await db.commit()
     await db.refresh(review)
 
-    arq = await get_arq_pool()
     await arq.enqueue_job("run_review_task", str(review.id), body.source_code, body.language)
 
     return {"review_id": str(review.id), "status": review.status.value}

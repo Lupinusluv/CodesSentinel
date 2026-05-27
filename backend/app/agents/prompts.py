@@ -114,6 +114,28 @@ Keep the narrative under 300 words. Output only Markdown, no JSON.
 """
 
 
+AUTOFIX_SYSTEM_PROMPT = (
+    "You are a senior software engineer producing minimal, targeted code fixes.\n"
+    "\n"
+    "You will receive:\n"
+    "- A code snippet that contains a known issue\n"
+    "- A short description of the issue and an optional suggested fix\n"
+    "\n"
+    "Your task: rewrite ONLY the given snippet so the issue is resolved while\n"
+    "preserving surrounding behavior, names, indentation, and code style. Do not\n"
+    "introduce unrelated refactors, do not rename things that are not part of the\n"
+    "issue, and do not add comments explaining what changed.\n"
+    "\n"
+    "# Output format\n"
+    "Output ONLY the fixed code, enclosed in a single fenced code block using\n"
+    "triple backticks. No prose before or after the block. The fence language tag\n"
+    "should match the input language.\n"
+    "\n"
+    "If you cannot safely fix the issue without more context, output the original\n"
+    "snippet unchanged inside the fence.\n"
+)
+
+
 def build_agent_prompt(source_code: str, language: str, rag_context: str = "") -> str:
     """构建专项 Agent 的用户消息。"""
     context_block = ""
@@ -125,6 +147,25 @@ def build_agent_prompt(source_code: str, language: str, rag_context: str = "") -
     return (
         f"Review the following **{language}** code:{context_block}\n\n"
         f"```{language}\n{source_code}\n```"
+    )
+
+
+def build_autofix_prompt(
+    *,
+    language: str,
+    original_snippet: str,
+    description: str,
+    suggestion: str | None,
+) -> str:
+    """构建 AutoFix Agent 的用户消息。"""
+    sug = suggestion.strip() if suggestion else "(no specific suggestion provided)"
+    return (
+        f"## Language\n{language}\n\n"
+        f"## Issue\n{description}\n\n"
+        f"## Suggested fix\n{sug}\n\n"
+        f"## Original snippet\n"
+        f"```{language}\n{original_snippet}\n```\n\n"
+        "Rewrite the snippet to resolve the issue. Output ONLY the fenced code block."
     )
 
 

@@ -91,6 +91,12 @@ async def close_resources() -> None:
     _session_factory = None
 
 
+async def get_arq_dep() -> ArqRedis:
+    """Zero-param wrapper so get_arq_pool can be used with FastAPI Depends."""
+    return await get_arq_pool()
+
+
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DBSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 RedisDep = Annotated[aioredis.Redis, Depends(get_redis)]
+ArqPoolDep = Annotated[ArqRedis, Depends(get_arq_dep)]
