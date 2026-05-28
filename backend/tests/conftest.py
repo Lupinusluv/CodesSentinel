@@ -20,7 +20,7 @@ os.environ.setdefault("APP_ENV", "test")
 os.environ.setdefault("DEEPSEEK_API_KEY", "dummy-for-tests")
 os.environ.setdefault(
     "TEST_DATABASE_URL",
-    "postgresql+asyncpg://codesentinel:codesentinel@localhost:5432/codessentinel_test",
+    "postgresql+asyncpg://codessentinel:codessentinel@localhost:5432/codessentinel_test",
 )
 os.environ.setdefault("DATABASE_URL", os.environ["TEST_DATABASE_URL"])
 
