@@ -37,6 +37,7 @@ export interface Patch {
   syntax_valid: boolean
   error_msg: string | null
   status: PatchStatus
+  is_final: boolean
   created_at: string
 }
 

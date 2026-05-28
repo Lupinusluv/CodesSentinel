@@ -177,6 +177,43 @@ def build_autofix_prompt(
     )
 
 
+AUTOFIX_FINAL_SYSTEM_PROMPT = (
+    "You are a senior software engineer producing a final consolidated fix for all\n"
+    "known issues in a source file.\n"
+    "\n"
+    "You will receive:\n"
+    "- A complete source file\n"
+    "- A list of ALL issues found in this file (with line ranges and descriptions)\n"
+    "- Optional suggestions for each issue\n"
+    "\n"
+    "Your task: fix EVERY issue listed, in a single coherent revision of the file.\n"
+    "Preserve all unrelated code. Do not rename variables or refactor anything unrelated.\n"
+    "\n"
+    "# Output format\n"
+    "Output ONLY the complete fixed source file, enclosed in a single fenced code block\n"
+    "using triple backticks. Include ALL lines. No prose before or after the block.\n"
+)
+
+
+def build_autofix_final_prompt(
+    *,
+    language: str,
+    source_code: str,
+    all_issues_desc: str,
+    all_issues_suggestions: str,
+) -> str:
+    """构建 AutoFix Final Agent 的用户消息。"""
+    return (
+        f"## Language\n{language}\n\n"
+        f"## All issues to fix\n{all_issues_desc}\n\n"
+        f"## Suggestions\n{all_issues_suggestions}\n\n"
+        f"## Full source code\n"
+        f"```{language}\n{source_code}\n```\n\n"
+        "Fix ALL of the above issues in a single consolidated revision. "
+        "Return the ENTIRE fixed source file in a fenced code block."
+    )
+
+
 def build_synthesis_prompt(source_code: str, language: str, issues_json: str) -> str:
     """构建 Synthesis Agent 的用户消息，包含所有 Agent 汇总的 issues。"""
     return (
