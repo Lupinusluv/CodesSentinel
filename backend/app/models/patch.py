@@ -41,5 +41,12 @@ class Patch(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=PatchStatus.pending,
     )
 
+    is_final: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+
     review: Mapped["Review"] = relationship(back_populates="patches")  # noqa: F821
     issue: Mapped["Issue"] = relationship(back_populates="patches")  # noqa: F821

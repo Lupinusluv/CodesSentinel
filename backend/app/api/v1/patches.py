@@ -8,7 +8,7 @@ import uuid
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.core.dependencies import ArqPoolDep, DBSessionDep
 from app.models.patch import Patch
@@ -29,6 +29,7 @@ class PatchResponse(BaseModel):
     syntax_valid: bool
     error_msg: str | None
     status: str
+    is_final: bool
     created_at: str
 
 
@@ -70,6 +71,11 @@ async def trigger_autofix(review_id: str, db: DBSessionDep, arq: ArqPoolDep) -> 
             detail="Review has no source_code stored; cannot generate patches",
         )
 
+    # race fix：trigger 同步 DELETE + commit 旧 patches，让前端 polling
+    # 永远拉不到上一轮残留（task 里的 DELETE 仍保留作幂等保护）
+    await db.execute(delete(Patch).where(Patch.review_id == uid))
+    await db.commit()
+
     await arq.enqueue_job("run_autofix_task", review_id)
 
     return AutoFixTriggerResponse(review_id=review_id, status="queued")
@@ -83,7 +89,9 @@ async def list_patches(review_id: str, db: DBSessionDep) -> PatchListResponse:
         raise HTTPException(status_code=400, detail="Invalid review_id format")
 
     result = await db.execute(
-        select(Patch).where(Patch.review_id == uid).order_by(Patch.created_at.asc())
+        select(Patch)
+        .where(Patch.review_id == uid)
+        .order_by(Patch.is_final.desc(), Patch.created_at.asc())
     )
     rows = list(result.scalars())
     return PatchListResponse(
@@ -100,6 +108,7 @@ async def list_patches(review_id: str, db: DBSessionDep) -> PatchListResponse:
                 syntax_valid=p.syntax_valid,
                 error_msg=p.error_msg,
                 status=p.status.value,
+                is_final=p.is_final,
                 created_at=p.created_at.isoformat(),
             )
             for p in rows
