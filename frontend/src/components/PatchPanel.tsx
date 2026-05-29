@@ -32,9 +32,32 @@ function extFor(language: string): string {
   return LANG_EXT[language.toLowerCase()] ?? 'txt'
 }
 
-// 浏览器异步下载流程中，过早 revokeObjectURL 会导致 a.download 属性丢失，
-// 文件名 fallback 成 blob URL 末尾的 UUID。延后 1s 让浏览器读完属性。
-function downloadBlob(content: string, filename: string) {
+// 优先 File System Access API 弹原生"另存为"对话框；用户取消即静默退出，
+// 不能 fallback 到默认下载目录（违反用户意图）。只有 API 真出错才降级 a.click。
+// 降级路径里延后 1s revoke 是 v0.4.2 的修复——过早 revoke 会让 Chromium 异步
+// 下载流程拿不到 a.download，文件名 fallback 成 blob URL 末尾的 UUID。
+async function downloadBlob(content: string, filename: string) {
+  if ('showSaveFilePicker' in window) {
+    try {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: filename,
+        types: [{
+          description: 'Source file',
+          accept: {
+            'text/plain': ['.py', '.js', '.ts', '.tsx', '.jsx', '.java', '.go', '.rs', '.cpp', '.c', '.txt'],
+          },
+        }],
+      })
+      const writable = await handle.createWritable()
+      await writable.write(content)
+      await writable.close()
+      return
+    } catch (e: any) {
+      if (e?.name === 'AbortError') return
+      console.warn('showSaveFilePicker failed, falling back to <a download>:', e)
+    }
+  }
+
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -205,7 +228,7 @@ function FinalPatchCard({
   }
 
   const handleDownload = () => {
-    downloadBlob(patch.fixed_code, `final-fixed.${extFor(language)}`)
+    void downloadBlob(patch.fixed_code, `final-fixed.${extFor(language)}`)
   }
 
   return (
@@ -266,7 +289,7 @@ function PatchCard({ patch, language }: { patch: Patch; language: string }) {
   }
 
   const handleDownload = () => {
-    downloadBlob(patch.fixed_code, `fixed-${patch.issue_id.slice(0, 8)}.${extFor(language)}`)
+    void downloadBlob(patch.fixed_code, `fixed-${patch.issue_id.slice(0, 8)}.${extFor(language)}`)
   }
 
   return (
