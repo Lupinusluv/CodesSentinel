@@ -102,3 +102,32 @@ def sample_python_code() -> str:
 def unique_marker() -> str:
     """让每个测试可以用唯一字符串识别自己创建的行，避免误清他人数据。"""
     return f"test-{uuid.uuid4().hex[:8]}"
+
+
+@pytest_asyncio.fixture
+async def github_repo(test_engine):
+    """注册一个 GitHub 仓库供 webhook / 回写测试使用。
+
+    conftest 的 db_session cleanup 不碰 repositories 表，所以本 fixture 自行清理
+    （含其名下 reviews，避免 FK 残留）。url 带随机后缀，重复跑不冲突。
+    """
+    from app.models.repository import Platform, Repository
+
+    factory = async_sessionmaker(test_engine, expire_on_commit=False, autoflush=False)
+    url = f"https://github.com/octocat/repo-{uuid.uuid4().hex[:8]}"
+    async with factory() as s:
+        repo = Repository(platform=Platform.github, url=url, webhook_secret="repo-secret")
+        s.add(repo)
+        await s.commit()
+        await s.refresh(repo)
+
+    yield repo
+
+    async with factory() as cleanup:
+        from sqlalchemy import text
+        for tbl in ["patches", "issues", "reviews"]:
+            await cleanup.execute(text(f"DELETE FROM {tbl}"))
+        obj = await cleanup.get(Repository, repo.id)
+        if obj is not None:
+            await cleanup.delete(obj)
+        await cleanup.commit()

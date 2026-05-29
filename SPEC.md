@@ -8,7 +8,7 @@
 
 ---
 
-## 当前实现进度（2026-05-28 更新，v0.4.3 已 tag）
+## 当前实现进度（2026-05-29 更新，v0.4.5 已 tag）
 
 ### 实际进度 vs 计划
 
@@ -29,6 +29,7 @@
 | v0.4.1 | LLM 入参从行级片段改为整文件，patch 成功率 20% → 100% |
 | v0.4.2 | rerun 安全（清旧 + 不累加 + race fix）+ 同行 issue 聚合（pick 最高 severity）+ per-patch 复制/下载 + FinalPatchCard（额外 LLM 调用产出综合修复版）+ 下载文件名 setTimeout 修复 |
 | v0.4.3 | 下载自选目录（File System Access API + 降级 a.click）+ conftest user 拼写修正 + Monaco DiffEditor unmount race 修复（onMount cleanup） |
+| v0.4.5 | webhook/回写路径测试硬化（+13 集成测试，覆盖验签/事件过滤/入队/status 状态逻辑/PR 评论）+ webhook 路由改 ArqPoolDep 注入（可测性）+ 修 happy-path 响应类型 bug（int pr 撞 dict[str,str] 校验导致 500→已放行 int），为 v0.5.0 上线前置 |
 
 ### 代码量现状
 
