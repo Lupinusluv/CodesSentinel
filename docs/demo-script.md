@@ -13,20 +13,21 @@
 | 后端活着 | `curl http://<公网IP>:8000/api/v1/health` | `{"status":"ok"}` |
 | 前端打得开 | 浏览器开 `http://<公网IP>:5173` | NewReview 页正常渲染 |
 | 前端 bundle 烘焙的是公网 IP | DevTools Network 看 API 请求目标 | 打到 `<公网IP>:8000`，不是 localhost |
-| **embedding 通**（webhook 路径隐藏依赖） | 见下方「embedding 预检」 | 不报错 |
+| embedding（失败会自动降级，非阻塞） | 见下方「embedding 说明」 | 失败也不影响审查 |
 | 目标仓库已注册 | Repositories 页能看到它 | URL 完全等于 `https://github.com/<owner>/<repo>` |
 | 容器都健康 | `docker compose -f docker-compose.prod.yml ps` | backend/worker/postgres/redis 全 Up/healthy |
 | backup 链接就绪 | 见第 4 节 | 预跑好的 review 详情页 URL 已存 |
 
-### embedding 预检（webhook 模式专属，paste 模式不需要）
-已注册仓库走 webhook 审查时，`retrieve_context` 会先打一次 DeepSeek `/embeddings`。这一步没有单独兜底，失败会让整个 review 标 failed。开演前对 worker 日志确认 embedding 不报错，或直接预跑一遍主线 PR 验证闭环。
-> 若 embedding 不稳，**直接走 paste 模式 demo**：paste 模式 `repository_id=None`，`retrieve_context` 直接返回 `""`，完全不碰 embedding。
+### embedding 说明（webhook 模式）
+已注册仓库走 webhook 审查时，`retrieve_context` 会先打一次 DeepSeek `/embeddings` 取 RAG 上下文。**当前生产环境此调用必定 404**（`text-embedding-v3` 是阿里通义模型名，DeepSeek 无 embeddings 端点，见 SPEC「已知问题」）。但 v0.5.0 起 embedding 失败会**优雅降级**：`retrieve_context` 返回 `""`，审查照常进行，只是少了仓库 RAG 上下文——而 PR diff 本身已含全部待审代码，demo 效果不受影响，**无需任何处理**。
+> RAG 上下文的真正恢复（换 embedding provider 或彻底关 RAG）是 v0.5.1 决策项。paste 模式 `repository_id=None` 则从一开始就不调 embedding。
 
 ---
 
 ## 1. 主线 Demo：真实 PR → 自动审查 → 回写
 
 ### 一次性准备（演示前就做好，别占用演示时间）
+> **目标仓库用专门新建的公开仓库**（如 `Demonstration`），别用你的主仓/私有仓：token 只需 `public_repo` 最小权限，泄露爆炸半径最小；公开仓 worker 拉 diff 也无需额外授权。
 1. **注册仓库**：前端 `/repositories` → 填
    - platform: `github`
    - url: `https://github.com/<owner>/<repo>`　**不带 `.git` 后缀**
