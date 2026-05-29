@@ -69,11 +69,9 @@ async def get_arq_pool(settings: Settings | None = None) -> ArqRedis:
     global _arq_pool
     if _arq_pool is None:
         settings = settings or get_settings()
-        url = settings.redis_url  # redis://localhost:6379/0
-        parts = url.replace("redis://", "").split("/")[0].split(":")
-        host = parts[0]
-        port = int(parts[1]) if len(parts) > 1 else 6379
-        _arq_pool = await create_pool(ArqRedisSettings(host=host, port=port))
+        # from_dsn 完整解析 host/port/db/密码/rediss:// TLS，与 get_redis 的 from_url 一致；
+        # 旧手写拆分只取 host/port，会丢密码、db 索引和 TLS。
+        _arq_pool = await create_pool(ArqRedisSettings.from_dsn(settings.redis_url))
     return _arq_pool
 
 
