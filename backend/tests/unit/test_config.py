@@ -6,7 +6,11 @@ v0.5.0 部署关键：生产环境 CORS 若放行空列表，前端所有请求�
 
 from app.core.config import Settings
 
-_BASE = {"deepseek_api_key": "x", "database_url": "postgresql+asyncpg://u:p@h/db"}
+_BASE = {
+    "deepseek_api_key": "x",
+    "dashscope_api_key": "x",
+    "database_url": "postgresql+asyncpg://u:p@h/db",
+}
 
 
 def _settings(**kw) -> Settings:

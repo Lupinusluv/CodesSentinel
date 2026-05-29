@@ -23,7 +23,7 @@ AI 代码智能审查与自动修复平台。接收 Git 平台（GitHub/GitLab/G
 
 - **后端**：Python 3.11 + FastAPI + SQLAlchemy（async）+ ARQ（任务队列）
 - **AI**：LangGraph + LangChain + DeepSeek API（OpenAI 格式兼容）
-- **存储**：PostgreSQL（主库）+ Redis（队列/缓存/Pub-Sub）+ ChromaDB（向量）
+- **存储**：PostgreSQL（主库 + pgvector 向量检索）+ Redis（队列/缓存/Pub-Sub）
 - **前端**：React + TypeScript + Tailwind CSS + shadcn/ui + Monaco Editor
 - **容器**：Docker + Docker Compose
 
@@ -32,8 +32,8 @@ AI 代码智能审查与自动修复平台。接收 Git 平台（GitHub/GitLab/G
 ## 开发环境启动
 
 ```bash
-# 启动全部基础服务（PostgreSQL + Redis + ChromaDB）
-docker compose up -d postgres redis chromadb
+# 启动全部基础服务（PostgreSQL[含 pgvector] + Redis）
+docker compose up -d postgres redis
 
 # 后端
 cd backend
@@ -70,9 +70,9 @@ backend/app/
 │   └── autofix_agent.py
 ├── rag/
 │   ├── chunker.py        AST 级别代码分块（按函数/类边界）
-│   ├── embeddings.py     Embedding 模型封装
-│   ├── indexer.py        全量仓库索引到 ChromaDB
-│   └── retriever.py      混合检索（语义 + BM25）
+│   ├── embeddings.py     Embedding 封装（DashScope text-embedding-v3）
+│   └── retriever.py      pgvector 余弦相似度检索
+│   （注：全量仓库索引在 tasks/index_task.py，非此目录）
 ├── platform/
 │   ├── base.py           GitPlatformAdapter 抽象基类
 │   └── adapters/         github.py / gitlab.py / gitee.py
@@ -119,9 +119,10 @@ backend/app/
 |------|------|
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥（主 LLM） |
 | `DEEPSEEK_BASE_URL` | 默认 `https://api.deepseek.com/v1` |
+| `DASHSCOPE_API_KEY` | DashScope（阿里灵积）密钥，用于 embedding（与 LLM 独立 provider，必填） |
+| `DASHSCOPE_BASE_URL` | 默认 `https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | `DATABASE_URL` | PostgreSQL 连接串 |
 | `REDIS_URL` | Redis 连接串 |
-| `CHROMA_HOST` / `CHROMA_PORT` | ChromaDB 地址 |
 | `GITHUB_WEBHOOK_SECRET` | GitHub Webhook 验签密钥 |
 | `GITLAB_WEBHOOK_SECRET` | GitLab Webhook 验签密钥 |
 | `GITEE_WEBHOOK_SECRET` | Gitee Webhook 验签密钥 |

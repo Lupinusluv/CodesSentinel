@@ -30,6 +30,8 @@
 | v0.4.2 | rerun 安全（清旧 + 不累加 + race fix）+ 同行 issue 聚合（pick 最高 severity）+ per-patch 复制/下载 + FinalPatchCard（额外 LLM 调用产出综合修复版）+ 下载文件名 setTimeout 修复 |
 | v0.4.3 | 下载自选目录（File System Access API + 降级 a.click）+ conftest user 拼写修正 + Monaco DiffEditor unmount race 修复（onMount cleanup） |
 | v0.4.5 | webhook/回写路径测试硬化（+13 集成测试，覆盖验签/事件过滤/入队/status 状态逻辑/PR 评论）+ webhook 路由改 ArqPoolDep 注入（可测性）+ 修 happy-path 响应类型 bug（int pr 撞 dict[str,str] 校验导致 500→已放行 int），为 v0.5.0 上线前置 |
+| v0.5.0 | 主线端到端首次真实跑通：真实 PR → webhook 验签 → 拉 diff → 多 Agent 并行 → synthesis → 回写 commit status + 格式化 PR 评论。裸 IP 部署（公网 IP 后端 + nginx 前端，无域名/SSL）。实战抓两个真 bug：webhook happy-path 500、RAG embedding 端点错配 |
+| v0.5.1 | embedding provider 切 DashScope，修复生产 RAG 失效：改用独立 `dashscope_*` 配置（DeepSeek 无 embeddings 端点）+ index 批量上限 100→10（DashScope v3 兼容模式单请求上限）。新增接线单测；真实 DashScope + pgvector 全栈 E2E 验证通过 |
 
 ### 代码量现状
 
@@ -47,7 +49,7 @@
 
 **后端**
 - `agents/`：graph.py、state.py、prompts.py、security/performance/style/synthesis_agent.py、utils.py（lane 隔离 + 置信度约束已调优）
-- `rag/`：chunker.py（AST分块）、embeddings.py、indexer.py、retriever.py（混合检索）
+- `rag/`：chunker.py（AST分块）、embeddings.py、retriever.py（pgvector 检索）；仓库索引在 `tasks/index_task.py`
 - `api/v1/`：reviews.py（CRUD + severity 排序）、repositories.py（完整 CRUD）、webhooks.py（GitHub 完整验签 + 入队）、metrics.py（SQL 聚合）、ws.py（WebSocket）、health.py
 - `models/`：review.py、issue.py、repository.py、code_chunk.py
 - `tasks/`：review_task.py（ARQ 审查主逻辑）、index_task.py（仓库 RAG 索引）、worker.py
@@ -91,7 +93,7 @@
   ```
 
   **v0.5.0 已止血**：`retrieve_context` 在 embedding 失败时优雅降级返回 `""`，审查照常进行（仅缺 RAG 上下文），不再让整个 review 崩溃。
-  **v0.5.1 候选决策（待架构定）**：换用支持 embedding 的 provider（OpenAI / Voyage / Jina / 阿里 DashScope / 本地模型），或彻底关闭 RAG 管道。
+  **v0.5.1 已修复（已 ship）**：embedding 改用独立的 DashScope provider（`dashscope_api_key` / `dashscope_base_url`，`text-embedding-v3` 本就是 DashScope 模型），与主 LL（DeepSeek）解耦。同时修隐藏次根因——`index_task` 批量上限 100→10（DashScope v3 兼容模式单请求最多 10 条，超限 400；此前因 DeepSeek 先 404 该路径从未真跑过）。`EMBEDDING_DIM=1024` 为 v3 默认维度，pgvector 表无需重建。已用真实 DashScope + pgvector 跑通"索引→写入→`<=>` 检索"全栈 E2E。
 
 ---
 
@@ -101,7 +103,7 @@
 |------|------|------|
 | 多平台接入 | GitHub Webhook 完整实现；GitPlatformAdapter 接口支持多平台扩展 | ⏳ 适配器未实现 |
 | 多 Agent 并行审查 | 安全/性能/规范三路并行，最终聚合 | ✅ 已完成 |
-| RAG 代码库理解 | AST 分块 + pgvector 检索；Webhook 模式注入仓库上下文，paste 模式无 RAG | ⚠️ 管道完成，但 embedding 端点错配致生产从未生效（见「已知问题」）；失败已优雅降级，不阻塞审查 |
+| RAG 代码库理解 | AST 分块 + pgvector 检索；Webhook 模式注入仓库上下文，paste 模式无 RAG | ✅ 已完成（v0.5.1 修复 embedding provider 后生产真实生效，全栈 E2E 已验证） |
 | 自动修复 | 生成 Patch → AST 语法校验 → Monaco DiffEditor 展示（不做 Docker 沙箱执行） | ✅ MVP 完成（v0.4.0） |
 | 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 | ✅ 已完成 |
 | Web Dashboard | 审查历史、统计指标、代码 diff 查看器 | ✅ 已完成 |
@@ -163,7 +165,7 @@ Git 平台（GitHub/GitLab/Gitee）
         ▼
 [review_task.py]（Worker 消费）
         ├─ 拉取 PR diff
-        ├─ RAG 检索相关上下文（ChromaDB）
+        ├─ RAG 检索相关上下文（pgvector）
         │
         ▼
 [LangGraph 审查图]

@@ -6,7 +6,7 @@
   3. 过滤：扩展名 + 目录黑名单 + size < 900 KB，优先级排序，截断至 200 个文件
   4. 并发拉取文件内容（asyncio.Semaphore(10)）
   5. AST 分块（chunk_code），跳过解析失败的文件
-  6. 批量 Embedding：收集所有 chunk content，每 100 条调一次 embed_texts
+  6. 批量 Embedding：收集所有 chunk content，每 10 条调一次 embed_texts
   7. 幂等写入：先删该仓库旧 CodeChunk，再批量 INSERT 新记录
   8. 更新 repository.indexed_at
 """
@@ -34,7 +34,7 @@ _GITHUB_API     = "https://api.github.com"
 _API_VERSION    = "2022-11-28"
 _MAX_FILES      = 200
 _MAX_FILE_BYTES = 900 * 1024   # GitHub 超过 1 MB 返回 403，保守取 900 KB
-_EMBED_BATCH    = 100           # 每批 embedding API 调用的 chunk 数
+_EMBED_BATCH    = 10            # DashScope text-embedding-v3 兼容模式单请求最多 10 条，超过报 400
 _FETCH_SEM      = 10            # 并发拉文件内容的最大协程数
 
 _SKIP_DIRS = {
@@ -105,7 +105,7 @@ async def run_index_task(ctx: dict, repository_id: str) -> None:
             await db.commit()
             return
 
-        # ── 4. 批量 Embedding（每 100 条一次 API 调用，串行）─────────────────────
+        # ── 4. 批量 Embedding（每 _EMBED_BATCH 条一次 API 调用，串行）────────────
         all_contents: list[str] = [chunk.content for _, chunk in items]
         all_embeddings: list[list[float]] = []
         for i in range(0, len(all_contents), _EMBED_BATCH):
