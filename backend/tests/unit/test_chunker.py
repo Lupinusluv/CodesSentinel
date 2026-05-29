@@ -74,6 +74,54 @@ def test_javascript_splits_function_and_class():
     assert "UserService" in names
 
 
+JS_FUNCTIONAL_CODE = """\
+const add = (a, b) => a + b;
+
+export const fetchAll = async () => {
+    return db.query("SELECT 1");
+};
+
+const handler = function process(req) {
+    return req.body;
+};
+
+const obj = {
+    compute() {
+        return [1, 2, 3].map(x => x * 2);
+    },
+};
+"""
+
+
+def test_js_named_arrow_gets_name():
+    # const foo = () => … 的名字在父 variable_declarator 上，必须被取到
+    chunks = chunk_code(JS_FUNCTIONAL_CODE, "javascript")
+    names = {c.symbol_name for c in chunks}
+    assert "add" in names
+    assert "fetchAll" in names  # export 包裹也要穿透
+
+
+def test_js_named_function_expression_gets_name():
+    chunks = chunk_code(JS_FUNCTIONAL_CODE, "javascript")
+    names = {c.symbol_name for c in chunks}
+    assert "handler" in names
+
+
+def test_js_object_method_gets_name():
+    # method 名是 property_identifier，旧实现只认 identifier → 丢名
+    chunks = chunk_code(JS_FUNCTIONAL_CODE, "javascript")
+    names = {c.symbol_name for c in chunks}
+    assert "compute" in names
+
+
+def test_js_inline_callback_produces_no_empty_name_noise():
+    # arr.map(x => …) 这类内联回调无 declarator 父节点，不应单独成块、不应产生空名 chunk
+    code = "const add = (a, b) => a + b;\n[1, 2, 3].map(x => x * 2);\n"
+    chunks = chunk_code(code, "javascript")
+    names = [c.symbol_name for c in chunks]
+    assert names == ["add"]
+
+
 def test_unsupported_language_returns_single_chunk():
     code = "fn main() { println!(\"hello\"); }"
     chunks = chunk_code(code, "rust")
