@@ -8,8 +8,11 @@ import uuid
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.logging import get_logger
 from app.models.code_chunk import CodeChunk
 from app.rag.embeddings import embed_text
+
+log = get_logger(__name__)
 
 _TOP_K = 8
 _MAX_CONTEXT_CHARS = 6000   # 拼接后传给 Agent 的最大字符数
@@ -28,7 +31,12 @@ async def retrieve_context(
     if repository_id is None:
         return ""
 
-    query_vec = await embed_text(query[:4000])
+    try:
+        query_vec = await embed_text(query[:4000])
+    except Exception as exc:
+        # RAG 是增强项，不应让一次 embedding 失败毁掉整个审查
+        log.warning("rag_embedding_failed", repository_id=str(repository_id), error=str(exc))
+        return ""
 
     # pgvector 余弦距离（<=>），越小越相似
     stmt = (

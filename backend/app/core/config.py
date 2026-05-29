@@ -33,9 +33,20 @@ class Settings(BaseSettings):
     app_env: Literal["development", "production", "test"] = "development"
     secret_key: str = "change_this_to_a_random_string"
 
+    # 生产环境前端 origin（逗号分隔），如 "http://1.2.3.4:5173"。
+    # dev 下忽略此项，固定放行 localhost:5173。
+    cors_origins: str = ""
+
     @property
     def is_dev(self) -> bool:
         return self.app_env == "development"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """CORS 放行的 origin 列表。dev 固定 localhost；生产读 cors_origins。"""
+        if self.is_dev:
+            return ["http://localhost:5173"]
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
 
 @lru_cache(maxsize=1)

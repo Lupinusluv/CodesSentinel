@@ -81,6 +81,18 @@
 2. **AutoFix 片段上下文重建** — 当前 AST 校验对行级片段成功率低（已知局限），可扩展为全函数上下文替换
 3. **面试准备** — 梳理设计决策文档、准备 demo 剧本
 
+### 已知问题（v0.5.0 实战暴露）
+
+- **RAG embedding 端点错配 —— 生产 RAG 从未真正工作**：`rag/embeddings.py` 用模型名 `text-embedding-v3` 打 DeepSeek `/embeddings`，但该模型名属阿里通义（DashScope），DeepSeek 并无 embeddings 端点，调用必返回 404。单测 mock 了 embedding、paste 模式不调用，故一直未暴露；v0.5.0 webhook 实战首次走真实已注册仓库路径时触发，worker 日志原文：
+
+  ```
+  response = await client.embeddings.create(
+  openai.NotFoundError: Error code: 404
+  ```
+
+  **v0.5.0 已止血**：`retrieve_context` 在 embedding 失败时优雅降级返回 `""`，审查照常进行（仅缺 RAG 上下文），不再让整个 review 崩溃。
+  **v0.5.1 候选决策（待架构定）**：换用支持 embedding 的 provider（OpenAI / Voyage / Jina / 阿里 DashScope / 本地模型），或彻底关闭 RAG 管道。
+
 ---
 
 ## 核心功能
@@ -89,7 +101,7 @@
 |------|------|------|
 | 多平台接入 | GitHub Webhook 完整实现；GitPlatformAdapter 接口支持多平台扩展 | ⏳ 适配器未实现 |
 | 多 Agent 并行审查 | 安全/性能/规范三路并行，最终聚合 | ✅ 已完成 |
-| RAG 代码库理解 | AST 分块 + pgvector 检索；Webhook 模式注入仓库上下文，paste 模式无 RAG | ✅ 管道已完成，Webhook 集成后生效 |
+| RAG 代码库理解 | AST 分块 + pgvector 检索；Webhook 模式注入仓库上下文，paste 模式无 RAG | ⚠️ 管道完成，但 embedding 端点错配致生产从未生效（见「已知问题」）；失败已优雅降级，不阻塞审查 |
 | 自动修复 | 生成 Patch → AST 语法校验 → Monaco DiffEditor 展示（不做 Docker 沙箱执行） | ✅ MVP 完成（v0.4.0） |
 | 实时流式输出 | WebSocket 推送审查进度，逐 token 显示 | ✅ 已完成 |
 | Web Dashboard | 审查历史、统计指标、代码 diff 查看器 | ✅ 已完成 |

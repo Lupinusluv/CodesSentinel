@@ -1,7 +1,19 @@
 # v0.5.0 工作交接 — GitHub 端到端上线（裸 IP 部署 + webhook 实战）
 
-**前提**：v0.4.3 已 ship（tag v0.4.3 在 main）。本版本在新分支 `feat/v0.5.0-deploy` 上做。
+**前提**：v0.4.5 已 ship（Phase 0 回写测试已硬化）。本版本在分支 `feat/v0.5.0-deploy` 上做。
 **部署方案**：`http://公网IP:8000`，不买域名、不配 SSL（X 方案，先跑起来）。
+
+---
+
+## 脚手架进度（2026-05-29，架构会话，已本地验证）
+
+Phase 1 的代码侧脚手架已就绪并本地验证（**未上服务器**）：
+- ✅ **Blocker 1（CORS）已修**：`config.py` 加 `cors_origins` + `cors_origin_list` 属性，`main.py` 改用之；4 个单测锁定（test_config.py）
+- ✅ **Blocker 2（前端 build env）已解**：`frontend/Dockerfile.prod`（多阶段 → nginx），VITE_* 经 build args 注入；已 docker build 验证，并确认公网 IP **真烘焙进 bundle**
+- ✅ **Blocker 3（prod 编排）已写**：`docker-compose.prod.yml`（独立文件，非 override；无源码挂载、去 --reload、APP_ENV 硬钉 production）；`docker compose config` 校验通过
+- ✅ `.env.example` 补齐 `GITHUB_TOKEN` / `CORS_ORIGINS` / `PUBLIC_API_URL` / `PUBLIC_WS_URL`
+
+**还剩（需服务器 + 你本人操作）**：在 .env 填真实 `GITHUB_TOKEN`/`GITHUB_WEBHOOK_SECRET`/`CORS_ORIGINS`/`PUBLIC_*` → 上服务器 `docker compose -f docker-compose.prod.yml up -d --build` → 开防火墙 8000/5173 → Phase 2 webhook 联调 → Phase 3 demo 剧本。v0.5.0 tag 待真实联调通过后再打。
 
 ---
 
