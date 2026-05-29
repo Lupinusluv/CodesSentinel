@@ -94,8 +94,10 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                             "content": token,
                         }))
 
-                elif kind == "on_chain_end" and name == "LangGraph":
-                    # 图执行结束，拿到最终状态
+                elif kind == "on_chain_end" and not event.get("parent_ids"):
+                    # 根图事件（parent_ids 为空）即图执行结束，拿最终状态。
+                    # 不用硬编码 name=="LangGraph"：那是 langgraph 内部命名，升级改名会
+                    # 让 final_state 恒为 None、每个审查都失败。parent_ids 为空更稳。
                     final_state = event["data"].get("output")
 
             if final_state is None:
