@@ -1,6 +1,7 @@
 """Embedding 模型封装。
 
-复用 DeepSeek /embeddings 端点（OpenAI 格式兼容），批量处理文本列表。
+调用 DashScope（阿里灵积）的 /embeddings 端点（OpenAI 格式兼容），批量处理文本列表。
+embedding 是独立于主 LLM 的 provider：DeepSeek 没有 embeddings 端点。
 """
 
 from openai import AsyncOpenAI
@@ -10,7 +11,7 @@ from app.models.code_chunk import EMBEDDING_DIM
 
 _client: AsyncOpenAI | None = None
 
-# DeepSeek embedding 模型名
+# DashScope embedding 模型名
 _EMBED_MODEL = "text-embedding-v3"
 
 
@@ -18,7 +19,7 @@ def _get_client() -> AsyncOpenAI:
     global _client
     if _client is None:
         s = get_settings()
-        _client = AsyncOpenAI(api_key=s.deepseek_api_key, base_url=s.deepseek_base_url)
+        _client = AsyncOpenAI(api_key=s.dashscope_api_key, base_url=s.dashscope_base_url)
     return _client
 
 

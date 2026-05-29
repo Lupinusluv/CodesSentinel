@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     deepseek_base_url: str = "https://api.deepseek.com/v1"
     deepseek_model: str = "deepseek-chat"
 
+    # Embedding 与 LLM 是独立 provider：DeepSeek 没有 embeddings 端点，
+    # 向量化走 DashScope（阿里灵积），不要复用 deepseek_* 字段。
+    dashscope_api_key: str = Field(..., description="DashScope(阿里灵积) API 密钥，用于 embedding")
+    dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
     database_url: str = Field(..., description="PostgreSQL 异步连接串")
 
     redis_url: str = "redis://localhost:6379/0"
