@@ -93,6 +93,8 @@
   ```
 
   **v0.5.0 已止血**：`retrieve_context` 在 embedding 失败时优雅降级返回 `""`，审查照常进行（仅缺 RAG 上下文），不再让整个 review 崩溃。
+
+  **v0.5.1 已根治（已 ship + 生产部署验证，2026-05-29）**：embedding provider 从 DeepSeek 切到 DashScope（`embeddings.py` 改用 `dashscope_*` 凭据；`index_task` 批量 100→10，适配 DashScope 兼容模式单请求 ≤10 限制）。生产实测：单条 embed 返回 1024 维、全仓索引产出 11 个 code_chunks、PR 审查用 diff 检索命中同仓代码。此项已不再是未决问题。
   **v0.5.1 已修复（已 ship）**：embedding 改用独立的 DashScope provider（`dashscope_api_key` / `dashscope_base_url`，`text-embedding-v3` 本就是 DashScope 模型），与主 LL（DeepSeek）解耦。同时修隐藏次根因——`index_task` 批量上限 100→10（DashScope v3 兼容模式单请求最多 10 条，超限 400；此前因 DeepSeek 先 404 该路径从未真跑过）。`EMBEDDING_DIM=1024` 为 v3 默认维度，pgvector 表无需重建。已用真实 DashScope + pgvector 跑通"索引→写入→`<=>` 检索"全栈 E2E。
 
 ---
@@ -121,7 +123,7 @@
 | Agent 框架 | LangGraph + LangChain |
 | 代码解析 | Python `ast` + `tree-sitter`（多语言 AST 分块） |
 | 向量检索 | pgvector（集成在 PostgreSQL，余弦相似度）|
-| 代码沙箱 | AST 语法校验（ast.parse / tsc --noEmit），不做 Docker exec |
+| 代码沙箱 | 语法校验（Python `ast.parse` / JS·TS `node --check`），不执行代码、不跑测试、不做 Docker exec |
 
 ### 基础设施层
 
@@ -209,12 +211,12 @@ codessentinel/
 │   │   │   ├── performance_agent.py ✅
 │   │   │   ├── style_agent.py   ✅
 │   │   │   ├── synthesis_agent.py ✅
-│   │   │   └── autofix_agent.py ⏳ 0 行，v0.4.0 实现
+│   │   │   └── autofix_agent.py ✅ v0.4.0 实现（生成 Patch + 语法校验，不执行代码）
 │   │   ├── rag/
 │   │   │   ├── chunker.py       ✅ AST 级别代码分块
-│   │   │   ├── embeddings.py    ✅ Embedding 封装
-│   │   │   ├── indexer.py       ✅ 仓库全量索引
-│   │   │   └── retriever.py     ✅ 混合检索（语义 + BM25）
+│   │   │   ├── embeddings.py    ✅ Embedding 封装（DashScope text-embedding-v3）
+│   │   │   └── retriever.py     ✅ pgvector 余弦检索（<=> 距离）
+│   │   │   （注：仓库全量索引在 tasks/index_task.py，rag/ 无 indexer.py）
 │   │   ├── platform/
 │   │   │   ├── base.py          ✅ GitPlatformAdapter 抽象基类
 │   │   │   └── adapters/
@@ -222,8 +224,8 @@ codessentinel/
 │   │   │       ├── gitlab.py    ⏳ 0 行，按需补充
 │   │   │       └── gitee.py     ⏳ 0 行，按需补充
 │   │   ├── sandbox/
-│   │   │   ├── executor.py      ⏳ 0 行，v0.4.0 实现
-│   │   │   └── validator.py     ⏳ 0 行，v0.4.0 实现
+│   │   │   ├── executor.py      ✅ v0.4.0 实现（语法校验 ast.parse / node --check，不执行代码）
+│   │   │   └── validator.py     ✅ v0.4.0 实现（委托 check_syntax + 生成 unified diff，不跑测试）
 │   │   ├── tasks/
 │   │   │   ├── review_task.py   ✅ 异步审查任务（ARQ Worker）
 │   │   │   └── index_task.py    ✅ ARQ 仓库 RAG 索引任务

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
-# DeepSeek text-embedding-v3 输出维度
+# DashScope text-embedding-v3 输出维度（embedding 走 DashScope，非 DeepSeek）
 EMBEDDING_DIM = 1024
 
 

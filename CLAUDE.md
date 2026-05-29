@@ -77,8 +77,8 @@ backend/app/
 │   ├── base.py           GitPlatformAdapter 抽象基类
 │   └── adapters/         github.py / gitlab.py / gitee.py
 ├── sandbox/
-│   ├── executor.py       Docker exec 沙箱执行代码
-│   └── validator.py      验证修复后测试是否通过
+│   ├── executor.py       语法校验（ast.parse / node --check），不执行代码
+│   └── validator.py      委托 check_syntax + 生成 unified diff，不跑测试
 ├── tasks/
 │   ├── review_task.py    ARQ 审查任务（消费队列、驱动 LangGraph）
 │   └── index_task.py     ARQ 索引任务

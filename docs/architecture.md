@@ -61,7 +61,7 @@
    + const API_KEY = process.env.API_KEY
    ```
 
-   沙箱验证通过后，小王 apply patch，Status Check 变为 ✅。
+   语法校验通过后，小王 apply patch，Status Check 变为 ✅。
 
 **场景二：Web 界面手动粘贴（MVP 演示 / 面试场景）**
 
@@ -189,9 +189,9 @@ platform/       依赖 core/
 
 rag/            依赖 core/ + models/
   chunker.py     AST 边界分块，按函数/类拆分，返回 CodeChunk 列表
-  embeddings.py  Embedding 封装（DeepSeek embedding API）
-  indexer.py     遍历仓库文件 → chunker → embeddings → 写 PostgreSQL/pgvector
-  retriever.py   混合检索：pgvector 语义搜索（<=> 余弦距离）+ BM25 关键词，结果合并
+  embeddings.py  Embedding 封装（DashScope text-embedding-v3，与 LLM 独立 provider）
+  retriever.py   pgvector 余弦检索（<=> 距离 + WHERE repository_id 过滤）
+  （注：全量仓库索引在 tasks/index_task.py，非此目录）
 
 agents/         依赖 core/ + rag/
   state.py       ReviewState, SecurityIssue, PerfIssue, StyleIssue（Pydantic）
@@ -284,7 +284,7 @@ WS 消息处理
 
 用户交互
   └─ 点击「自动修复」→ POST /reviews/{id}/autofix
-        └─ 沙箱验证通过后，CodeViewer 切换到 diff 模式展示 patch
+        └─ 语法校验通过后，CodeViewer 切换到 diff 模式展示 patch
 ```
 
 ---
@@ -305,7 +305,7 @@ main                              始终保持可演示状态，每个里程碑�
   │
   ├── feat/multi-agent-parallel   三路 Agent 并行（第 2 个月）
   ├── feat/rag-chunker            AST 分块实现
-  ├── feat/rag-indexer            ChromaDB 索引 + 混合检索
+  ├── feat/rag-indexer            pgvector 索引 + 语义检索
   │
   ├── feat/github-webhook         GitHub Webhook 接入（第 3 个月）
   ├── feat/gitlab-webhook         GitLab 接入

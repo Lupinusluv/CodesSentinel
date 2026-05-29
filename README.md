@@ -40,7 +40,7 @@ Each agent has a narrow system prompt and produces structured Pydantic output. T
 | Layer        | Choice                                                                            |
 |--------------|-----------------------------------------------------------------------------------|
 | Backend      | Python 3.11, FastAPI, SQLAlchemy (async), ARQ task queue                          |
-| LLM stack    | LangGraph, LangChain, DeepSeek API (OpenAI-compatible)                            |
+| LLM stack    | LangGraph, LangChain, DeepSeek (review LLM) + DashScope (RAG embeddings)           |
 | Storage      | PostgreSQL + pgvector, Redis (queue / cache / pub-sub)                            |
 | Frontend     | React + TypeScript, Tailwind CSS, shadcn/ui, Monaco Editor                        |
 | Infra        | Docker Compose (full stack, healthcheck-based dependency chain), Alembic          |
@@ -53,14 +53,37 @@ Each agent has a narrow system prompt and produces structured Pydantic output. T
 git clone https://github.com/<you>/codessentinel.git
 cd codessentinel
 cp .env.example .env
-# edit .env: set DEEPSEEK_API_KEY (DATABASE_URL and REDIS_URL are overridden by compose)
+# edit .env:
+#   DEEPSEEK_API_KEY  — required: the review LLM. No key → reviews can't run.
+#   DASHSCOPE_API_KEY — required field, used for RAG embeddings (DeepSeek has no
+#                       embeddings endpoint, so vectors go through DashScope/Aliyun).
+#                       Keep the .env.example placeholder so the backend boots; RAG
+#                       degrades gracefully if the key is fake/empty. Don't delete
+#                       the line — it's a required field and an empty value will fail.
+#   DATABASE_URL / REDIS_URL — overridden by compose, no need to touch.
 
 docker compose up -d
 # postgres + redis + backend (with alembic migration) + worker + frontend
 # wait for healthchecks; backend serves on :8000, frontend on :5173
 ```
 
-Open http://localhost:5173, register a repository, and trigger an index.
+Open **http://localhost:5173**. There are two ways to use it — **you never edit code inside the tool itself**:
+
+### A. Paste mode (zero setup beyond the LLM key)
+On the home page (**🔍 New Review**), paste a snippet, pick a language, and hit **开始审查**. The three agents (Security / Performance / Style) stream findings live, followed by a synthesis report. This is the fastest way to try it — **no GitHub, no token, no webhook needed**, just `DEEPSEEK_API_KEY`.
+
+### B. GitHub PR mode (auto-review every pull request)
+Let CodeSentinel review your real PRs automatically. GitHub must be able to reach your backend's webhook endpoint, so the backend has to be **publicly reachable** — a cloud server, or a tunnel like `ngrok http 8000` from a laptop. Then:
+
+1. **Register the repo** — 🗂 Repos page → repo URL + a webhook secret.
+2. **Add the GitHub webhook** — repo Settings → Webhooks → Add:
+   - Payload URL: `http://<public-addr>:8000/api/v1/webhooks/github`
+   - Content type `application/json`, Secret = the same string, Events = **Pull requests** only.
+   - The secret must match in **all three places** (GitHub webhook config / repo registration / `.env` `GITHUB_WEBHOOK_SECRET`), and the repo URL must match GitHub's `html_url` exactly.
+3. *(Optional)* **Index the repo** for RAG — 🗂 Repos → 触发索引, so reviews can cite related code from the same repo. Needs a valid `DASHSCOPE_API_KEY` and source files on the default branch.
+4. Open a PR → the commit gets a CodeSentinel status check + a review comment.
+
+> Only **pull-request** events trigger a review (`opened` / `synchronize` / `reopened`). Pushing straight to a branch without opening a PR won't be reviewed.
 
 To run the evaluation locally (no Docker required, just `DEEPSEEK_API_KEY` and a placeholder `DATABASE_URL` for pydantic-settings validation):
 
@@ -134,7 +157,7 @@ backend/
 ├── app/
 │   ├── agents/       LangGraph nodes (security/performance/style/synthesis) + prompts
 │   ├── api/v1/       FastAPI routers (reviews, repositories, webhooks, metrics, ws)
-│   ├── rag/          AST chunker + retriever (pgvector + BM25)
+│   ├── rag/          AST chunker + embeddings (DashScope) + pgvector cosine retriever
 │   ├── platform/     Git platform adapters (GitHub/GitLab/Gitee)
 │   ├── tasks/        ARQ tasks (review pipeline + indexing)
 │   └── models/       SQLAlchemy ORM
@@ -156,7 +179,7 @@ frontend/
 ## Roadmap
 
 - **v0.4** — Semantic matching for the eval scorer (embedding similarity replaces literal keyword check) + multi-file eval samples to actually measure RAG contribution.
-- **v0.5** — AutoFix agent: generate unified-diff patches, validate in a sandbox (compile check + targeted tests), surface "one-click fix" in the UI.
+- **v0.5** — AutoFix agent: generate unified-diff patches, validate them with a syntax check (`ast.parse` / `node --check` — no code execution or test running yet), surface "one-click fix" in the UI. *(Sandboxed execution + targeted test runs are future work.)*
 - **v0.6** — Pre-classification router node before the agent fan-out — only activate the relevant agents per file/diff to further reduce cross-category prediction volume.
 
 ---
