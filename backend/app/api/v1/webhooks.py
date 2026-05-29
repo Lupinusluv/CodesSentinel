@@ -13,10 +13,11 @@ GitHub 事件流程：
 
 import json
 
+from arq import ArqRedis
 from fastapi import APIRouter, Header, HTTPException, Request, status
 
 from app.core.config import get_settings
-from app.core.dependencies import DBSessionDep, get_arq_pool
+from app.core.dependencies import ArqPoolDep, DBSessionDep
 from app.core.logging import get_logger
 from app.models.repository import Repository
 from app.models.review import Review, ReviewStatus
@@ -33,6 +34,7 @@ _PR_ACTIONS = {"opened", "synchronize", "reopened"}
 
 async def _enqueue_review(
     db: DBSessionDep,
+    arq: ArqRedis,
     repository: Repository,
     pr_number: int,
     language: str,
@@ -53,7 +55,6 @@ async def _enqueue_review(
     await db.commit()
     await db.refresh(review)
 
-    arq = await get_arq_pool()
     # source_code 传 "" — review_task 检测到空值后自行从 GitHub 拉 diff
     await arq.enqueue_job("run_review_task", str(review.id), "", language)
     log.info(
@@ -72,9 +73,10 @@ async def _enqueue_review(
 async def github_webhook(
     request: Request,
     db: DBSessionDep,
+    arq: ArqPoolDep,
     x_hub_signature_256: str | None = Header(default=None),
     x_github_event: str | None = Header(default=None),
-) -> dict[str, str]:
+) -> dict[str, str | int]:  # pr 编号是 int，响应校验需放行（否则 happy path 返回 500）
     payload_bytes = await request.body()
 
     # ── 1. 验签 ──────────────────────────────────────────────────────────────
@@ -137,7 +139,7 @@ async def github_webhook(
         log.warning("github_status_pending_failed", sha=head_sha[:8])
 
     # ── 6. 写记录 + 入队，立刻返回 202（diff 由 Worker 异步拉取）────────────────
-    await _enqueue_review(db, repository, pr_number, language, head_sha)
+    await _enqueue_review(db, arq, repository, pr_number, language, head_sha)
 
     return {"status": "accepted", "pr": pr_number}
 
