@@ -8,7 +8,7 @@
 
 ---
 
-## 当前实现进度（2026-05-27 更新，v0.4.0 已 tag）
+## 当前实现进度（2026-05-28 更新，v0.4.3 已 tag）
 
 ### 实际进度 vs 计划
 
@@ -20,6 +20,15 @@
 | 第4个月（9月） | 评测指标 + AutoFix + 优化 + 面试准备 | ✅ 评测集完成；AutoFix MVP 完成（v0.4.0） |
 
 > 现在是 5 月底，整体进度超前约 3 个月，全部核心功能已实现。
+
+### Patch 版本历史
+
+| 版本 | 主要改动 |
+|------|---------|
+| v0.4.0 | AutoFix MVP（agent + sandbox + patches 表 + PatchPanel UI + 41 tests） |
+| v0.4.1 | LLM 入参从行级片段改为整文件，patch 成功率 20% → 100% |
+| v0.4.2 | rerun 安全（清旧 + 不累加 + race fix）+ 同行 issue 聚合（pick 最高 severity）+ per-patch 复制/下载 + FinalPatchCard（额外 LLM 调用产出综合修复版）+ 下载文件名 setTimeout 修复 |
+| v0.4.3 | 下载自选目录（File System Access API + 降级 a.click）+ conftest user 拼写修正 + Monaco DiffEditor unmount race 修复（onMount cleanup） |
 
 ### 代码量现状
 
