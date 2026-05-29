@@ -24,8 +24,16 @@ _SPLIT_TYPES = {
     "function_declaration",      # JS/TS function
     "method_definition",         # JS/TS method
     "class_declaration",         # JS/TS class
-    "arrow_function",            # JS/TS arrow（仅顶层）
 }
+
+# JS/TS 函数本身匿名（arrow / function expression），名字挂在父 variable_declarator 上。
+# 只在具名声明处切块（const foo = () => …），内联回调（arr.map(x => …)）因无
+# declarator 父节点天然被排除，不再产生空名噪声 chunk。
+_FUNC_VALUE_TYPES = {"arrow_function", "function_expression"}
+
+# 取符号名的节点类型：identifier（Python def/class、JS function/变量名）、
+# property_identifier（JS/TS method 名）。
+_NAME_TYPES = {"identifier", "property_identifier"}
 
 
 @dataclass
@@ -62,27 +70,47 @@ def chunk_code(source_code: str, language: str) -> list[Chunk]:
 
 def _walk(node: Node, lines: list[str], chunks: list[Chunk], depth: int) -> None:
     if node.type in _SPLIT_TYPES:
-        name = _get_name(node)
         sym_type = "class" if "class" in node.type else "function"
-        start = node.start_point[0]  # 0-based
-        end = node.end_point[0]      # 0-based
-        content = "\n".join(lines[start : end + 1])
-        chunks.append(Chunk(
-            symbol_name=name,
-            symbol_type=sym_type,
-            content=content,
-            start_line=start + 1,
-            end_line=end + 1,
-        ))
+        _append_chunk(node, _get_name(node), sym_type, lines, chunks)
         # 不继续递归子节点，避免嵌套函数产生重复 chunk
+        return
+
+    # 具名箭头/函数表达式：以整个 declarator 为 chunk（含 `foo = ` 前缀，
+    # 保留变量名语境），名字取 declarator 的 identifier。
+    if node.type == "variable_declarator" and _has_func_init(node):
+        _append_chunk(node, _get_name(node), "function", lines, chunks)
         return
 
     for child in node.children:
         _walk(child, lines, chunks, depth + 1)
 
 
+def _append_chunk(
+    node: Node,
+    name: str | None,
+    sym_type: str,
+    lines: list[str],
+    chunks: list[Chunk],
+) -> None:
+    start = node.start_point[0]  # 0-based
+    end = node.end_point[0]      # 0-based
+    content = "\n".join(lines[start : end + 1])
+    chunks.append(Chunk(
+        symbol_name=name,
+        symbol_type=sym_type,
+        content=content,
+        start_line=start + 1,
+        end_line=end + 1,
+    ))
+
+
+def _has_func_init(node: Node) -> bool:
+    """variable_declarator 的初始化值是否为箭头函数 / 函数表达式。"""
+    return any(child.type in _FUNC_VALUE_TYPES for child in node.children)
+
+
 def _get_name(node: Node) -> str | None:
     for child in node.children:
-        if child.type == "identifier":
+        if child.type in _NAME_TYPES:
             return child.text.decode() if child.text else None
     return None
