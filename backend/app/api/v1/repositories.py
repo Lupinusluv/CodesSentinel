@@ -23,7 +23,6 @@ _PLATFORM_URL_PREFIX: dict[str, str] = {
 class CreateRepositoryRequest(BaseModel):
     platform: Platform
     url: str
-    webhook_secret: str
 
     @field_validator("url")
     @classmethod
@@ -63,7 +62,6 @@ async def create_repository(body: CreateRepositoryRequest, db: DBSessionDep) -> 
     repo = Repository(
         platform=body.platform,
         url=body.url,
-        webhook_secret=body.webhook_secret,
     )
     db.add(repo)
     await db.commit()

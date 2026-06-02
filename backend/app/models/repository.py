@@ -20,7 +20,6 @@ class Repository(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Enum(Platform, name="platform_enum", create_type=False), nullable=False
     )
     url: Mapped[str] = mapped_column(String(512), nullable=False, unique=True)
-    webhook_secret: Mapped[str] = mapped_column(String(128), nullable=False)
     indexed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

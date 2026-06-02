@@ -35,11 +35,10 @@
    - url: `https://github.com/<owner>/<repo>`　**不带 `.git` 后缀**
      （webhook 按 `html_url` 精确匹配：`.git` 后缀或大小写不一致会导致被 ignore；尾斜杠会被注册端 `rstrip("/")` 自动剥除，无碍）
    - **仓库主语言**：webhook 模式 `language` 取自 GitHub 识别的仓库主语言（默认 python）。demo 建议用 GitHub 识别为 Python 的仓库，免得 language 标错影响审查
-   - webhook_secret: 与 `.env` 的 `GITHUB_WEBHOOK_SECRET` 一致
 2. **配 GitHub Webhook**：仓库 Settings → Webhooks → Add：
    - Payload URL：`http://<公网IP>:8000/api/v1/webhooks/github`（ngrok 阶段用 ngrok 域名）
    - Content type：`application/json`
-   - Secret：同上
+   - Secret：与 `.env` 的 `GITHUB_WEBHOOK_SECRET` 一致（两者一致即可，注册仓库时不再填 secret）
    - 事件：**只勾 Pull requests**
 3. **准备 buggy 分支**：把 `buggy_payment.py` 放进目标仓库一个新分支，但**先不开 PR**（演示时现场开）。
    > **Demonstration 仓库已就绪（2026-05-29）**：`main` 已有 `src/payments/` 规范源码并完成索引（11 chunks，供 RAG 召回）；`demo-buggy` 分支 + PR #1 已存在。**要刷新一次演示**，无需新开 PR——直接在 PR #1 页面 `Close → Reopen`（徽章走一轮 Open→Closed→Open）即触发 `reopened` webhook 重审，几秒后刷出新评论。
@@ -98,7 +97,7 @@
 ## 5. 排查速查（出问题按这个顺序看）
 
 1. **GitHub Recent Deliveries**：webhook 到底发出去没？响应码是几？
-   - 401 → 验签失败：`GITHUB_WEBHOOK_SECRET` 与注册时 `webhook_secret`、GitHub 配置三者不一致
+   - 401 → 验签失败：GitHub webhook 配置 与 `.env` 的 `GITHUB_WEBHOOK_SECRET` 两者不一致
    - 200 `{"status":"ignored","reason":"repository not registered"}` → 仓库没注册或 URL 没精确匹配（`.git` 后缀 / 大小写；尾斜杠已被注册端 rstrip，不影响）
    - 200 `{"status":"ignored","reason":"action=..."}` → 不是 opened/synchronize/reopened，正常
 2. **worker 日志**：`docker compose -f docker-compose.prod.yml logs -f worker`

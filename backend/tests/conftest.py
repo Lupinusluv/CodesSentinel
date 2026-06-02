@@ -116,7 +116,7 @@ async def github_repo(test_engine):
     factory = async_sessionmaker(test_engine, expire_on_commit=False, autoflush=False)
     url = f"https://github.com/octocat/repo-{uuid.uuid4().hex[:8]}"
     async with factory() as s:
-        repo = Repository(platform=Platform.github, url=url, webhook_secret="repo-secret")
+        repo = Repository(platform=Platform.github, url=url)
         s.add(repo)
         await s.commit()
         await s.refresh(repo)

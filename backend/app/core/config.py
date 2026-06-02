@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     # 生产环境前端 origin（逗号分隔），如 "http://1.2.3.4:5173"。
     # dev 下忽略此项，固定放行 localhost:5173。
     cors_origins: str = ""
+
+    @model_validator(mode="after")
+    def _require_webhook_secret_in_production(self) -> "Settings":
+        # 生产环境必须配置 webhook secret，否则验签会被跳过（fail-open）。
+        # 把"忘配 secret"提前到启动时硬失败，而不是等伪造请求来了才暴露。
+        if self.app_env == "production" and not self.github_webhook_secret:
+            raise ValueError("GITHUB_WEBHOOK_SECRET must be set in production")
+        return self
 
     @property
     def is_dev(self) -> bool:
