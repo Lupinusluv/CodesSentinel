@@ -140,8 +140,7 @@ def build_agent_prompt(source_code: str, language: str, rag_context: str = "") -
     context_block = ""
     if rag_context:
         context_block = (
-            f"\n\n## Reference Context (similar code from the repository)\n\n"
-            f"{rag_context}\n"
+            f"\n\n## Reference Context (similar code from the repository)\n\n" f"{rag_context}\n"
         )
     return (
         f"Review the following **{language}** code:{context_block}\n\n"

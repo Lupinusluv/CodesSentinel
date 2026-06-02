@@ -15,7 +15,7 @@ from app.rag.embeddings import embed_text
 log = get_logger(__name__)
 
 _TOP_K = 8
-_MAX_CONTEXT_CHARS = 6000   # 拼接后传给 Agent 的最大字符数
+_MAX_CONTEXT_CHARS = 6000  # 拼接后传给 Agent 的最大字符数
 
 
 async def retrieve_context(

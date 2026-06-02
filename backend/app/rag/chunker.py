@@ -11,19 +11,19 @@ import tree_sitter_python as tspython
 from tree_sitter import Language, Node, Parser
 
 _LANGUAGES: dict[str, Language] = {
-    "python":     Language(tspython.language()),
+    "python": Language(tspython.language()),
     "javascript": Language(tsjs.language()),
     "typescript": Language(tsjs.language()),
 }
 
 # 作为分块边界的节点类型
 _SPLIT_TYPES = {
-    "function_definition",       # Python def
-    "async_function_definition", # Python async def
-    "class_definition",          # Python class
-    "function_declaration",      # JS/TS function
-    "method_definition",         # JS/TS method
-    "class_declaration",         # JS/TS class
+    "function_definition",  # Python def
+    "async_function_definition",  # Python async def
+    "class_definition",  # Python class
+    "function_declaration",  # JS/TS function
+    "method_definition",  # JS/TS method
+    "class_declaration",  # JS/TS class
 }
 
 # JS/TS 函数本身匿名（arrow / function expression），名字挂在父 variable_declarator 上。
@@ -39,10 +39,10 @@ _NAME_TYPES = {"identifier", "property_identifier"}
 @dataclass
 class Chunk:
     symbol_name: str | None
-    symbol_type: str | None   # "function" | "class" | None
+    symbol_type: str | None  # "function" | "class" | None
     content: str
-    start_line: int           # 1-based
-    end_line: int             # 1-based
+    start_line: int  # 1-based
+    end_line: int  # 1-based
 
 
 def chunk_code(source_code: str, language: str) -> list[Chunk]:
@@ -93,15 +93,17 @@ def _append_chunk(
     chunks: list[Chunk],
 ) -> None:
     start = node.start_point[0]  # 0-based
-    end = node.end_point[0]      # 0-based
+    end = node.end_point[0]  # 0-based
     content = "\n".join(lines[start : end + 1])
-    chunks.append(Chunk(
-        symbol_name=name,
-        symbol_type=sym_type,
-        content=content,
-        start_line=start + 1,
-        end_line=end + 1,
-    ))
+    chunks.append(
+        Chunk(
+            symbol_name=name,
+            symbol_type=sym_type,
+            content=content,
+            start_line=start + 1,
+            end_line=end + 1,
+        )
+    )
 
 
 def _has_func_init(node: Node) -> bool:

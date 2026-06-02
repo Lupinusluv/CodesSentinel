@@ -57,6 +57,7 @@ Rules:
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 
+
 def load_samples(subset: list[str] | None = None) -> list[dict]:
     categories = subset or ["security", "performance", "style"]
     samples: list[dict] = []
@@ -69,6 +70,7 @@ def load_samples(subset: list[str] | None = None) -> list[dict]:
 
 
 # ── Matching logic ─────────────────────────────────────────────────────────────
+
 
 def _issue_matches(predicted: dict, expected: dict) -> bool:
     """True when predicted issue satisfies all three criteria for expected."""
@@ -107,7 +109,7 @@ def compute_metrics(
             cat_stats.setdefault(exp["category"], {"tp": 0, "fp": 0, "fn": 0})
 
         matched_pred: set[int] = set()
-        matched_exp:  set[int] = set()
+        matched_exp: set[int] = set()
 
         for ei, exp in enumerate(expected):
             for pi, pred in enumerate(predicted):
@@ -158,6 +160,7 @@ def compute_metrics(
 
 # ── Runners ───────────────────────────────────────────────────────────────────
 
+
 def _normalise_issues(issues: list[IssueOutput]) -> list[dict]:
     return [
         {
@@ -174,7 +177,7 @@ async def run_multi_agent(sample: dict) -> list[dict]:
     state: ReviewState = {
         "source_code": sample["source_code"],
         "language": sample["language"],
-        "rag_context": "",   # no DB during eval
+        "rag_context": "",  # no DB during eval
         "issues": [],
         "report_text": "",
         "error": None,
@@ -192,10 +195,12 @@ async def run_baseline(sample: dict) -> list[dict]:
     llm = get_llm(temperature=0)
     user_msg = f"Language: {sample['language']}\n\nCode:\n```{sample['language']}\n{sample['source_code']}\n```"
     try:
-        resp = await llm.ainvoke([
-            SystemMessage(content=_BASELINE_SYSTEM),
-            HumanMessage(content=user_msg),
-        ])
+        resp = await llm.ainvoke(
+            [
+                SystemMessage(content=_BASELINE_SYSTEM),
+                HumanMessage(content=user_msg),
+            ]
+        )
         text = resp.content.strip()
         # Strip markdown fences if the model adds them
         if text.startswith("```"):
@@ -209,6 +214,7 @@ async def run_baseline(sample: dict) -> list[dict]:
 
 
 # ── Output formatting ─────────────────────────────────────────────────────────
+
 
 def print_results(multi: dict, base: dict) -> None:
     cats = ["security", "performance", "style"]
@@ -238,6 +244,7 @@ def print_results(multi: dict, base: dict) -> None:
 
 # ── Result persistence ────────────────────────────────────────────────────────
 
+
 def _write_payload(out_path: Path, payload: dict) -> None:
     """Atomic-ish write: write to tmp then rename, so a crash mid-flush can't truncate."""
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
@@ -246,6 +253,7 @@ def _write_payload(out_path: Path, payload: dict) -> None:
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
+
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate CodeSentinel vs single-LLM baseline")
@@ -274,12 +282,16 @@ async def main() -> None:
         missing = [s["id"] for s in samples if s["id"] not in reuse_baseline_map]
         if missing:
             raise SystemExit(f"--reuse-baseline missing predictions for: {missing[:3]} ...")
-        print(f"Reusing baseline predictions from {args.reuse_baseline} (metrics will be re-computed against current expected_issues)")
+        print(
+            f"Reusing baseline predictions from {args.reuse_baseline} (metrics will be re-computed against current expected_issues)"
+        )
 
     if reuse_baseline_map is not None:
         print(f"Loaded {len(samples)} samples. Running multi-agent only (baseline reused)...")
     else:
-        print(f"Loaded {len(samples)} samples. Running multi-agent and baseline in parallel per sample...")
+        print(
+            f"Loaded {len(samples)} samples. Running multi-agent and baseline in parallel per sample..."
+        )
 
     results_dir = Path(__file__).parent / "eval_results"
     results_dir.mkdir(exist_ok=True)
@@ -325,21 +337,23 @@ async def main() -> None:
         baseline_predicted.append(b_issues)
         all_expected.append(sample["expected_issues"])
 
-        per_sample.append({
-            "id": sample["id"],
-            "category": sample["id"].split("_")[0],
-            "elapsed_s": round(elapsed, 2),
-            "expected": sample["expected_issues"],
-            "multi_predicted": m_issues,
-            "baseline_predicted": b_issues,
-        })
+        per_sample.append(
+            {
+                "id": sample["id"],
+                "category": sample["id"].split("_")[0],
+                "elapsed_s": round(elapsed, 2),
+                "expected": sample["expected_issues"],
+                "multi_predicted": m_issues,
+                "baseline_predicted": b_issues,
+            }
+        )
 
         # Incremental snapshot — survives Ctrl-C / crash on later samples
         base_payload["completed_count"] = i
         base_payload["elapsed_seconds"] = round(total_elapsed, 1)
         _write_payload(out_path, base_payload)
 
-    multi_metrics    = compute_metrics(multi_predicted, all_expected)
+    multi_metrics = compute_metrics(multi_predicted, all_expected)
     # Always re-compute baseline metrics from predictions against current expected_issues.
     # This is critical when expected_issues' keyword set has changed since the cached run.
     baseline_metrics = compute_metrics(baseline_predicted, all_expected)

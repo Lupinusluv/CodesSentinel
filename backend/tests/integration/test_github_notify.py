@@ -14,10 +14,14 @@ from app.models.review import Review, ReviewStatus
 from app.platform.adapters.github import GitHubAdapter
 from app.tasks.review_task import _format_pr_comment, _maybe_notify_github
 
-pytestmark = pytest.mark.integration  # asyncio_mode=auto，async 测试自动识别；本文件含同步用例，不加 asyncio mark
+pytestmark = (
+    pytest.mark.integration
+)  # asyncio_mode=auto，async 测试自动识别；本文件含同步用例，不加 asyncio mark
 
 
-def _issue(severity: IssueSeverity, category: IssueCategory = IssueCategory.security) -> IssueOutput:
+def _issue(
+    severity: IssueSeverity, category: IssueCategory = IssueCategory.security
+) -> IssueOutput:
     return IssueOutput(category=category, severity=severity, description="problem")
 
 
@@ -49,6 +53,7 @@ async def _make_review(db_session, repo, *, head_sha: str | None = "a" * 40) -> 
 
 # ── _format_pr_comment ────────────────────────────────────────────────────────
 
+
 def test_format_pr_comment_counts_by_severity():
     issues = [
         _issue(IssueSeverity.critical),
@@ -74,12 +79,16 @@ def test_format_pr_comment_empty_uses_placeholder():
 
 # ── _maybe_notify_github 状态逻辑 ─────────────────────────────────────────────
 
+
 async def test_notify_critical_sets_failure(db_session, github_repo, patch_github):
     status_mock, comment_mock = patch_github
     review = await _make_review(db_session, github_repo)
 
     await _maybe_notify_github(
-        db_session, review, [_issue(IssueSeverity.critical), _issue(IssueSeverity.warning)], "report"
+        db_session,
+        review,
+        [_issue(IssueSeverity.critical), _issue(IssueSeverity.warning)],
+        "report",
     )
 
     status_mock.assert_awaited_once()
@@ -92,7 +101,10 @@ async def test_notify_no_critical_sets_success(db_session, github_repo, patch_gi
     review = await _make_review(db_session, github_repo)
 
     await _maybe_notify_github(
-        db_session, review, [_issue(IssueSeverity.warning), _issue(IssueSeverity.suggestion)], "report"
+        db_session,
+        review,
+        [_issue(IssueSeverity.warning), _issue(IssueSeverity.suggestion)],
+        "report",
     )
 
     assert status_mock.call_args.args[3] == "success"

@@ -16,7 +16,7 @@ router = APIRouter(prefix="/repositories", tags=["repositories"])
 
 _PLATFORM_URL_PREFIX: dict[str, str] = {
     "github": "https://github.com/",
-    "gitee":  "https://gitee.com/",
+    "gitee": "https://gitee.com/",
 }
 
 
@@ -46,6 +46,7 @@ class RepositoryResponse(BaseModel):
 
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
+
 
 @router.get("", response_model=list[RepositoryResponse])
 async def list_repositories(db: DBSessionDep) -> list[RepositoryResponse]:
@@ -104,6 +105,7 @@ async def delete_repository(repository_id: str, db: DBSessionDep) -> None:
 
 
 # ── 工具 ──────────────────────────────────────────────────────────────────────
+
 
 def _to_response(repo: Repository) -> RepositoryResponse:
     return RepositoryResponse(

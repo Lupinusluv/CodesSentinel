@@ -77,7 +77,9 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                 elif kind == "on_chain_end" and name in _AGENT_NODES:
                     output = event["data"].get("output") or {}
                     issue_count = len(output.get("issues", []))
-                    msg = json.dumps({"type": "agent_done", "agent": name, "issue_count": issue_count})
+                    msg = json.dumps(
+                        {"type": "agent_done", "agent": name, "issue_count": issue_count}
+                    )
                     await redis.publish(channel, msg)
                     # 持久化进度，供晚连接的 WS 追赶（TTL 1小时）
                     progress_key = f"review:{review_id}:progress"
@@ -85,15 +87,22 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                     await redis.expire(progress_key, 3600)
 
                 elif kind == "on_chain_start" and name == "synthesis":
-                    await redis.publish(channel, json.dumps({"type": "agent_start", "agent": "synthesis"}))
+                    await redis.publish(
+                        channel, json.dumps({"type": "agent_start", "agent": "synthesis"})
+                    )
 
                 elif kind == "on_chat_model_stream" and "synthesis" in tags:
                     token: str = event["data"]["chunk"].content
                     if token:
-                        await redis.publish(channel, json.dumps({
-                            "type": "synthesis_token",
-                            "content": token,
-                        }))
+                        await redis.publish(
+                            channel,
+                            json.dumps(
+                                {
+                                    "type": "synthesis_token",
+                                    "content": token,
+                                }
+                            ),
+                        )
 
                 elif kind == "on_chain_end" and not event.get("parent_ids"):
                     # 根图事件（parent_ids 为空）即图执行结束，拿最终状态。
@@ -119,24 +128,31 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
             review.total_issues = len(issues)
             review.duration_ms = duration_ms
             for issue in issues:
-                db.add(Issue(
-                    review_id=review.id,
-                    category=issue.category,
-                    severity=issue.severity,
-                    file_path=issue.file_path,
-                    line_start=issue.line_start,
-                    line_end=issue.line_end,
-                    description=issue.description,
-                    suggestion=issue.suggestion,
-                ))
+                db.add(
+                    Issue(
+                        review_id=review.id,
+                        category=issue.category,
+                        severity=issue.severity,
+                        file_path=issue.file_path,
+                        line_start=issue.line_start,
+                        line_end=issue.line_end,
+                        description=issue.description,
+                        suggestion=issue.suggestion,
+                    )
+                )
             await db.commit()
 
-            await redis.publish(channel, json.dumps({
-                "type": "done",
-                "issue_count": len(issues),
-                "duration_ms": duration_ms,
-                "parse_failures": parse_failures,
-            }))
+            await redis.publish(
+                channel,
+                json.dumps(
+                    {
+                        "type": "done",
+                        "issue_count": len(issues),
+                        "duration_ms": duration_ms,
+                        "parse_failures": parse_failures,
+                    }
+                ),
+            )
             log.info("review_done", review_id=review_id, issues=len(issues), ms=duration_ms)
 
             # P1: Webhook 模式回调 GitHub（paste 模式无 head_sha，静默跳过）
@@ -155,6 +171,7 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
 
 
 # ── Webhook 模式：在 Worker 内拉 PR diff ─────────────────────────────────────
+
 
 async def _fetch_pr_diff(db, review: Review) -> str:
     """从 GitHub 拉取 PR diff，写入 review.source_code 供后续 Source Code Tab 展示。
@@ -179,10 +196,11 @@ async def _fetch_pr_diff(db, review: Review) -> str:
 
 # ── GitHub 回调 ───────────────────────────────────────────────────────────────
 
+
 def _format_pr_comment(issues: list[IssueOutput], report_text: str, duration_ms: int) -> str:
     """将审查结果格式化为 GitHub PR 评论 Markdown。"""
     critical = sum(1 for i in issues if i.severity == IssueSeverity.critical)
-    warnings  = sum(1 for i in issues if i.severity == IssueSeverity.warning)
+    warnings = sum(1 for i in issues if i.severity == IssueSeverity.warning)
 
     header = (
         f"## 🔍 CodeSentinel Review\n\n"
@@ -227,7 +245,8 @@ async def _maybe_notify_github(
             state = "failure" if critical_count > 0 else "success"
             desc = (
                 f"Found {len(issues)} issues ({critical_count} critical)"
-                if issues else "No issues found"
+                if issues
+                else "No issues found"
             )
         await adapter.set_commit_status(owner, repo_name, review.head_sha, state, desc)
 

@@ -11,6 +11,7 @@ from app.sandbox.validator import make_unified_diff, validate_patch
 
 # ── check_syntax: Python ──────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_python_valid_code():
     code = "def foo(x: int) -> int:\n    return x + 1\n"
@@ -52,6 +53,7 @@ async def test_python_alias_py():
 
 # ── check_syntax: 未知语言降级 ────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_unknown_language_passes_through():
     """MVP 范围：不识别的语言不做校验，直接 (True, None)。"""
@@ -69,25 +71,23 @@ async def test_blank_language_passes_through():
 
 # ── validate_patch: 委托链路 ──────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_validate_patch_delegates_to_check_syntax():
-    valid, err = await validate_patch(
-        original="x = 1\n", fixed="x = 2\n", language="python"
-    )
+    valid, err = await validate_patch(original="x = 1\n", fixed="x = 2\n", language="python")
     assert valid is True
     assert err is None
 
 
 @pytest.mark.asyncio
 async def test_validate_patch_catches_bad_fixed_code():
-    valid, err = await validate_patch(
-        original="x = 1\n", fixed="def f(:\n", language="python"
-    )
+    valid, err = await validate_patch(original="x = 1\n", fixed="def f(:\n", language="python")
     assert valid is False
     assert err is not None
 
 
 # ── make_unified_diff ─────────────────────────────────────────────────────────
+
 
 def test_diff_identical_input_returns_empty():
     diff = make_unified_diff("foo\nbar\n", "foo\nbar\n")

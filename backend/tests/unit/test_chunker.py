@@ -123,7 +123,7 @@ def test_js_inline_callback_produces_no_empty_name_noise():
 
 
 def test_unsupported_language_returns_single_chunk():
-    code = "fn main() { println!(\"hello\"); }"
+    code = 'fn main() { println!("hello"); }'
     chunks = chunk_code(code, "rust")
     assert len(chunks) == 1
     assert chunks[0].symbol_name is None

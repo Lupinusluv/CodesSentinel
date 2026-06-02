@@ -39,9 +39,7 @@ class Review(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     report_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    repository: Mapped["Repository | None"] = relationship(  # noqa: F821
-        back_populates="reviews"
-    )
+    repository: Mapped["Repository | None"] = relationship(back_populates="reviews")  # noqa: F821
     issues: Mapped[list["Issue"]] = relationship(  # noqa: F821
         back_populates="review",
         cascade="all, delete-orphan",

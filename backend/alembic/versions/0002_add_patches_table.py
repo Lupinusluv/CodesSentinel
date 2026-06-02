@@ -5,6 +5,7 @@ Revises: 0001
 Create Date: 2026-05-26
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -60,7 +61,9 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "pending", "done", "failed",
+                "pending",
+                "done",
+                "failed",
                 name="patch_status_enum",
             ),
             nullable=False,

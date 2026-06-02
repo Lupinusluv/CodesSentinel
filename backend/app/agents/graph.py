@@ -28,22 +28,22 @@ async def rag_node(state: ReviewState) -> dict:
 def build_graph() -> StateGraph:
     graph = StateGraph(ReviewState)
 
-    graph.add_node("rag",         rag_node)
-    graph.add_node("security",    security_node)
+    graph.add_node("rag", rag_node)
+    graph.add_node("security", security_node)
     graph.add_node("performance", performance_node)
-    graph.add_node("style",       style_node)
-    graph.add_node("synthesis",   synthesis_node)
+    graph.add_node("style", style_node)
+    graph.add_node("synthesis", synthesis_node)
 
-    graph.add_edge(START,         "rag")
+    graph.add_edge(START, "rag")
     # 扇出：rag → 三个 Agent 同时执行（LangGraph 同一 superstep）
-    graph.add_edge("rag",         "security")
-    graph.add_edge("rag",         "performance")
-    graph.add_edge("rag",         "style")
+    graph.add_edge("rag", "security")
+    graph.add_edge("rag", "performance")
+    graph.add_edge("rag", "style")
     # 扇入：三个 Agent 全部完成后才进入 synthesis
-    graph.add_edge("security",    "synthesis")
+    graph.add_edge("security", "synthesis")
     graph.add_edge("performance", "synthesis")
-    graph.add_edge("style",       "synthesis")
-    graph.add_edge("synthesis",   END)
+    graph.add_edge("style", "synthesis")
+    graph.add_edge("synthesis", END)
 
     return graph
 

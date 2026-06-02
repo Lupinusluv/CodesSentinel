@@ -32,18 +32,26 @@ async def review_stream(websocket: WebSocket, review_id: str) -> None:
         async with get_session_factory()() as db:
             review = await db.get(Review, uid)
         if review and review.status == ReviewStatus.done:
-            await websocket.send_text(json.dumps({
-                "type": "done",
-                "issue_count": review.total_issues,
-                "duration_ms": review.duration_ms,
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "done",
+                        "issue_count": review.total_issues,
+                        "duration_ms": review.duration_ms,
+                    }
+                )
+            )
             await websocket.close()
             return
         if review and review.status == ReviewStatus.failed:
-            await websocket.send_text(json.dumps({
-                "type": "error",
-                "message": review.error_message or "review failed",
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "error",
+                        "message": review.error_message or "review failed",
+                    }
+                )
+            )
             await websocket.close()
             return
     except Exception:
@@ -57,11 +65,15 @@ async def review_stream(websocket: WebSocket, review_id: str) -> None:
         progress_key = f"review:{review_id}:progress"
         completed: dict[str, str] = await redis.hgetall(progress_key)
         for agent_name, issue_count_str in completed.items():
-            await websocket.send_text(json.dumps({
-                "type": "agent_done",
-                "agent": agent_name,
-                "issue_count": int(issue_count_str),
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "agent_done",
+                        "agent": agent_name,
+                        "issue_count": int(issue_count_str),
+                    }
+                )
+            )
     except Exception:
         pass  # 追赶失败不影响后续正常流
 
@@ -70,18 +82,26 @@ async def review_stream(websocket: WebSocket, review_id: str) -> None:
         async with get_session_factory()() as db2:
             review2 = await db2.get(Review, uid)
         if review2 and review2.status == ReviewStatus.done:
-            await websocket.send_text(json.dumps({
-                "type": "done",
-                "issue_count": review2.total_issues,
-                "duration_ms": review2.duration_ms,
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "done",
+                        "issue_count": review2.total_issues,
+                        "duration_ms": review2.duration_ms,
+                    }
+                )
+            )
             await websocket.close()
             return
         if review2 and review2.status == ReviewStatus.failed:
-            await websocket.send_text(json.dumps({
-                "type": "error",
-                "message": review2.error_message or "review failed",
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "error",
+                        "message": review2.error_message or "review failed",
+                    }
+                )
+            )
             await websocket.close()
             return
     except Exception:

@@ -14,6 +14,7 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 # ── 请求 / 响应 Schema ────────────────────────────────────────────────────────
 
+
 class CreateReviewRequest(BaseModel):
     source_code: str
     language: str = "python"
@@ -43,6 +44,7 @@ class ReviewResponse(BaseModel):
 
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
+
 
 @router.get("", response_model=list[ReviewResponse])
 async def list_reviews(db: DBSessionDep) -> list[ReviewResponse]:
@@ -99,13 +101,12 @@ async def get_review(review_id: str, db: DBSessionDep) -> ReviewResponse:
         },
         value=Issue.severity,
     )
-    result = await db.execute(
-        select(Issue).where(Issue.review_id == uid).order_by(severity_order)
-    )
+    result = await db.execute(select(Issue).where(Issue.review_id == uid).order_by(severity_order))
     return _to_response(review, list(result.scalars()))
 
 
 # ── 内部工具 ──────────────────────────────────────────────────────────────────
+
 
 def _to_response(review: Review, issues: list[Issue] | None = None) -> ReviewResponse:
     return ReviewResponse(

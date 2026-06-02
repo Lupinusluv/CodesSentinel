@@ -27,14 +27,13 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 @pytest_asyncio.fixture
 async def patched_task(test_engine, monkeypatch):
     factory = async_sessionmaker(test_engine, expire_on_commit=False, autoflush=False)
-    monkeypatch.setattr(
-        "app.tasks.autofix_task.get_session_factory", lambda: factory
-    )
+    monkeypatch.setattr("app.tasks.autofix_task.get_session_factory", lambda: factory)
     return factory
 
 
 def _patch_graph_with_final(monkeypatch):
     """让图同时产出 per-issue patches + 1 个 is_final final patch。"""
+
     async def fake_ainvoke(state):
         per_issue = [
             PatchOutput(
@@ -69,6 +68,7 @@ def _patch_graph_with_final(monkeypatch):
 
 def _patch_graph_final_drops_silently(monkeypatch):
     """方案 A：merge_all 失败时只返回 per-issue patches，无 final patch 入库。"""
+
     async def fake_ainvoke(state):
         return {
             **state,
@@ -93,7 +93,9 @@ def _patch_graph_final_drops_silently(monkeypatch):
     )
 
 
-async def _seed(factory, *, ranges: list[tuple[int, int, IssueSeverity]]) -> tuple[uuid.UUID, dict[IssueSeverity, uuid.UUID]]:
+async def _seed(
+    factory, *, ranges: list[tuple[int, int, IssueSeverity]]
+) -> tuple[uuid.UUID, dict[IssueSeverity, uuid.UUID]]:
     """返回 review_id 和 severity → issue_id 映射，便于后续断言。"""
     async with factory() as s:
         rev = Review(
@@ -110,7 +112,8 @@ async def _seed(factory, *, ranges: list[tuple[int, int, IssueSeverity]]) -> tup
                 review_id=rev.id,
                 category=IssueCategory.security,
                 severity=sev,
-                line_start=ls, line_end=le,
+                line_start=ls,
+                line_end=le,
                 description=f"{sev.value} issue",
                 fixed=False,
             )
@@ -123,6 +126,7 @@ async def _seed(factory, *, ranges: list[tuple[int, int, IssueSeverity]]) -> tup
 
 
 # ── 主路径：成功产出 N+1 patches ───────────────────────────────────────────────
+
 
 async def test_final_patch_is_written_alongside_per_issue(patched_task, monkeypatch):
     from app.tasks.autofix_task import run_autofix_task
@@ -166,13 +170,13 @@ async def test_final_patch_does_not_double_mark_issues_fixed(patched_task, monke
     # 每个 issue 都只有 per-issue patch 在 fixed=True 路径上一次
     # 这里间接验证：count(fixed=True) 应等于 issue 总数
     async with patched_task() as s:
-        result = await s.execute(
-            select(Issue).where(Issue.review_id == rid, Issue.fixed.is_(True))
-        )
+        result = await s.execute(select(Issue).where(Issue.review_id == rid, Issue.fixed.is_(True)))
         assert len(list(result.scalars())) == 2
 
 
-async def test_list_patches_api_returns_final_first(http_client, db_session, patched_task, monkeypatch):
+async def test_list_patches_api_returns_final_first(
+    http_client, db_session, patched_task, monkeypatch
+):
     """GET /patches 排序应让 is_final=True 排最前。"""
     from app.tasks.autofix_task import run_autofix_task
 
@@ -187,12 +191,13 @@ async def test_list_patches_api_returns_final_first(http_client, db_session, pat
     resp = await http_client.get(f"/api/v1/reviews/{rid}/patches")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["total"] == 3   # 2 per-issue + 1 final
+    assert body["total"] == 3  # 2 per-issue + 1 final
     assert body["patches"][0]["is_final"] is True
     assert all(p["is_final"] is False for p in body["patches"][1:])
 
 
 # ── 方案 A：失败静默降级 ───────────────────────────────────────────────────────
+
 
 async def test_no_final_patch_when_merge_all_drops(patched_task, monkeypatch):
     """merge_all 失败 → 只写 per-issue patches，不写 failed final 记录。"""
@@ -213,7 +218,9 @@ async def test_no_final_patch_when_merge_all_drops(patched_task, monkeypatch):
     assert rows[0].is_final is False
 
 
-async def test_api_omits_final_card_when_none_exists(http_client, db_session, patched_task, monkeypatch):
+async def test_api_omits_final_card_when_none_exists(
+    http_client, db_session, patched_task, monkeypatch
+):
     """方案 A 验证：失败时 API 返回里没有任何 is_final=True 的 patch。"""
     from app.tasks.autofix_task import run_autofix_task
 

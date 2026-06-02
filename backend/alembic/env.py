@@ -15,10 +15,10 @@ from app.models.base import Base  # noqa: F401 — 触发所有子模型注册
 
 # 显式 import 所有 model，确保 Base.metadata 包含全部表
 import app.models.repository  # noqa: F401
-import app.models.review      # noqa: F401
-import app.models.issue       # noqa: F401
+import app.models.review  # noqa: F401
+import app.models.issue  # noqa: F401
 import app.models.code_chunk  # noqa: F401
-import app.models.patch       # noqa: F401
+import app.models.patch  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

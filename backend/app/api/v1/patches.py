@@ -19,6 +19,7 @@ router = APIRouter(prefix="/reviews", tags=["patches"])
 
 # ── 响应 Schema ───────────────────────────────────────────────────────────────
 
+
 class PatchResponse(BaseModel):
     id: str
     review_id: str
@@ -46,12 +47,15 @@ class AutoFixTriggerResponse(BaseModel):
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
 
+
 @router.post(
     "/{review_id}/autofix",
     response_model=AutoFixTriggerResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def trigger_autofix(review_id: str, db: DBSessionDep, arq: ArqPoolDep) -> AutoFixTriggerResponse:
+async def trigger_autofix(
+    review_id: str, db: DBSessionDep, arq: ArqPoolDep
+) -> AutoFixTriggerResponse:
     try:
         uid = uuid.UUID(review_id)
     except ValueError:

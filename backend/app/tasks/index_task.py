@@ -30,24 +30,39 @@ from app.rag.embeddings import embed_texts
 
 log = get_logger(__name__)
 
-_GITHUB_API     = "https://api.github.com"
-_API_VERSION    = "2022-11-28"
-_MAX_FILES      = 200
-_MAX_FILE_BYTES = 900 * 1024   # GitHub 超过 1 MB 返回 403，保守取 900 KB
-_EMBED_BATCH    = 10            # DashScope text-embedding-v3 兼容模式单请求最多 10 条，超过报 400
-_FETCH_SEM      = 10            # 并发拉文件内容的最大协程数
+_GITHUB_API = "https://api.github.com"
+_API_VERSION = "2022-11-28"
+_MAX_FILES = 200
+_MAX_FILE_BYTES = 900 * 1024  # GitHub 超过 1 MB 返回 403，保守取 900 KB
+_EMBED_BATCH = 10  # DashScope text-embedding-v3 兼容模式单请求最多 10 条，超过报 400
+_FETCH_SEM = 10  # 并发拉文件内容的最大协程数
 
 _SKIP_DIRS = {
-    "tests", "test", "docs", "doc", "node_modules", "vendor",
-    "dist", "build", ".venv", "venv", "__pycache__", ".git",
-    "coverage", "htmlcov", "fixtures", "static", "assets", "public",
+    "tests",
+    "test",
+    "docs",
+    "doc",
+    "node_modules",
+    "vendor",
+    "dist",
+    "build",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".git",
+    "coverage",
+    "htmlcov",
+    "fixtures",
+    "static",
+    "assets",
+    "public",
 }
 _PRIORITY_DIRS = {"src", "app", "lib", "core", "api", "services", "models"}
-_EXT_TO_LANG   = {
-    ".py":  "python",
-    ".js":  "javascript",
+_EXT_TO_LANG = {
+    ".py": "python",
+    ".js": "javascript",
     ".jsx": "javascript",
-    ".ts":  "typescript",
+    ".ts": "typescript",
     ".tsx": "typescript",
 }
 
@@ -137,12 +152,15 @@ async def run_index_task(ctx: dict, repository_id: str) -> None:
 
         log.info(
             "index_done",
-            owner=owner, repo=repo_name,
-            files=len(files), chunks=len(items),
+            owner=owner,
+            repo=repo_name,
+            files=len(files),
+            chunks=len(items),
         )
 
 
 # ── 内部工具 ──────────────────────────────────────────────────────────────────
+
 
 def _should_skip(path: str) -> bool:
     """路径中任意目录部分命中黑名单则跳过（不检查文件名本身）。"""
@@ -156,9 +174,7 @@ def _priority_key(file: dict) -> int:
     return 0 if top in _PRIORITY_DIRS else 1
 
 
-async def _fetch_file_tree(
-    client: httpx.AsyncClient, owner: str, repo: str
-) -> list[dict]:
+async def _fetch_file_tree(client: httpx.AsyncClient, owner: str, repo: str) -> list[dict]:
     """一次性拉取 GitHub 文件树，过滤后返回候选文件列表。"""
     resp = await client.get(
         f"{_GITHUB_API}/repos/{owner}/{repo}/git/trees/HEAD",
@@ -171,7 +187,8 @@ async def _fetch_file_tree(
         log.warning("index_tree_truncated", owner=owner, repo=repo)
 
     blobs = [
-        item for item in data.get("tree", [])
+        item
+        for item in data.get("tree", [])
         if item["type"] == "blob"
         and any(item["path"].endswith(ext) for ext in _EXT_TO_LANG)
         and not _should_skip(item["path"])
@@ -196,7 +213,7 @@ async def _fetch_file_content(
 ) -> tuple[str, str]:
     """拉取单文件内容，返回 (decoded_content, language)。"""
     path = file["path"]
-    ext  = "." + path.rsplit(".", 1)[-1]
+    ext = "." + path.rsplit(".", 1)[-1]
     lang = _EXT_TO_LANG[ext]
 
     async with sem:

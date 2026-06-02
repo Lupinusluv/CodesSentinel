@@ -5,9 +5,7 @@ import difflib
 from app.sandbox.executor import check_syntax
 
 
-async def validate_patch(
-    original: str, fixed: str, language: str
-) -> tuple[bool, str | None]:
+async def validate_patch(original: str, fixed: str, language: str) -> tuple[bool, str | None]:
     """对修复后的代码做语法校验。
 
     保留独立 validator 入口是为将来增加更多 patch 级校验（语义 diff、必要

@@ -20,9 +20,7 @@ class Repository(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Enum(Platform, name="platform_enum", create_type=False), nullable=False
     )
     url: Mapped[str] = mapped_column(String(512), nullable=False, unique=True)
-    indexed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     reviews: Mapped[list["Review"]] = relationship(  # noqa: F821
         back_populates="repository",
