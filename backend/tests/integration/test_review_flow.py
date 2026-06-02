@@ -18,6 +18,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
 # ── POST /api/v1/reviews ──────────────────────────────────────────────────────
 
+
 async def test_post_reviews_creates_pending_row(http_client, db_session, sample_python_code):
     resp = await http_client.post(
         "/api/v1/reviews",
@@ -57,32 +58,35 @@ async def test_post_reviews_rejects_oversized_source(http_client):
 
 # ── GET /api/v1/reviews/{id} ──────────────────────────────────────────────────
 
+
 async def test_get_review_returns_issues_in_severity_order(http_client, db_session):
     review = Review(status=ReviewStatus.done, language="python", source_code="x = 1\n")
     db_session.add(review)
     await db_session.commit()
     await db_session.refresh(review)
 
-    db_session.add_all([
-        Issue(
-            review_id=review.id,
-            category=IssueCategory.style,
-            severity=IssueSeverity.suggestion,
-            description="suggestion-level",
-        ),
-        Issue(
-            review_id=review.id,
-            category=IssueCategory.security,
-            severity=IssueSeverity.critical,
-            description="critical-level",
-        ),
-        Issue(
-            review_id=review.id,
-            category=IssueCategory.performance,
-            severity=IssueSeverity.warning,
-            description="warning-level",
-        ),
-    ])
+    db_session.add_all(
+        [
+            Issue(
+                review_id=review.id,
+                category=IssueCategory.style,
+                severity=IssueSeverity.suggestion,
+                description="suggestion-level",
+            ),
+            Issue(
+                review_id=review.id,
+                category=IssueCategory.security,
+                severity=IssueSeverity.critical,
+                description="critical-level",
+            ),
+            Issue(
+                review_id=review.id,
+                category=IssueCategory.performance,
+                severity=IssueSeverity.warning,
+                description="warning-level",
+            ),
+        ]
+    )
     await db_session.commit()
 
     resp = await http_client.get(f"/api/v1/reviews/{review.id}")
@@ -104,6 +108,7 @@ async def test_get_review_400_on_bad_uuid(http_client):
 
 
 # ── POST /api/v1/reviews/{id}/autofix ─────────────────────────────────────────
+
 
 async def test_trigger_autofix_requires_done_status(http_client, db_session):
     review = Review(status=ReviewStatus.running, language="python", source_code="x = 1\n")
@@ -129,9 +134,7 @@ async def test_trigger_autofix_enqueues_when_done(http_client, db_session):
     assert resp.status_code == 202
     assert resp.json()["status"] == "queued"
 
-    http_client.fake_arq.enqueue_job.assert_awaited_once_with(
-        "run_autofix_task", str(review.id)
-    )
+    http_client.fake_arq.enqueue_job.assert_awaited_once_with("run_autofix_task", str(review.id))
 
 
 async def test_trigger_autofix_rejects_review_without_source(http_client, db_session):
@@ -145,6 +148,7 @@ async def test_trigger_autofix_rejects_review_without_source(http_client, db_ses
 
 
 # ── GET /api/v1/reviews/{id}/patches ──────────────────────────────────────────
+
 
 async def test_list_patches_returns_existing_rows(http_client, db_session):
     review = Review(status=ReviewStatus.done, language="python", source_code="x = 1\n")
@@ -162,16 +166,18 @@ async def test_list_patches_returns_existing_rows(http_client, db_session):
     await db_session.commit()
     await db_session.refresh(issue)
 
-    db_session.add(Patch(
-        review_id=review.id,
-        issue_id=issue.id,
-        original_code="password = '123'\n",
-        fixed_code="password = os.environ['PW']\n",
-        diff="--- a\n+++ b\n@@ -1 +1 @@\n-password='123'\n+password=os.environ['PW']\n",
-        syntax_valid=True,
-        error_msg=None,
-        status=PatchStatus.done,
-    ))
+    db_session.add(
+        Patch(
+            review_id=review.id,
+            issue_id=issue.id,
+            original_code="password = '123'\n",
+            fixed_code="password = os.environ['PW']\n",
+            diff="--- a\n+++ b\n@@ -1 +1 @@\n-password='123'\n+password=os.environ['PW']\n",
+            syntax_valid=True,
+            error_msg=None,
+            status=PatchStatus.done,
+        )
+    )
     await db_session.commit()
 
     resp = await http_client.get(f"/api/v1/reviews/{review.id}/patches")

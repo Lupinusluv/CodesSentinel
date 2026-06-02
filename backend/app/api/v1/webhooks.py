@@ -69,6 +69,7 @@ async def _enqueue_review(
 
 # ── GitHub ────────────────────────────────────────────────────────────────────
 
+
 @router.post("/github", status_code=status.HTTP_202_ACCEPTED)
 async def github_webhook(
     request: Request,
@@ -109,18 +110,16 @@ async def github_webhook(
         return {"status": "ignored", "reason": f"action={action}"}
 
     # ── 3. 解析仓库信息 ───────────────────────────────────────────────────────
-    pr      = payload["pull_request"]
-    repo    = payload["repository"]
+    pr = payload["pull_request"]
+    repo = payload["repository"]
     repo_url = repo["html_url"]
     pr_number = int(pr["number"])
-    head_sha  = pr["head"]["sha"]
+    head_sha = pr["head"]["sha"]
     # GitHub 不暴露语言字段，从仓库的 language 属性读取，默认 python
-    language  = (repo.get("language") or "python").lower()
+    language = (repo.get("language") or "python").lower()
 
     # ── 4. 查找已注册的仓库 ───────────────────────────────────────────────────
-    result = await db.execute(
-        select(Repository).where(Repository.url == repo_url)
-    )
+    result = await db.execute(select(Repository).where(Repository.url == repo_url))
     repository = result.scalar_one_or_none()
     if repository is None:
         log.warning("webhook_repo_not_registered", url=repo_url)
@@ -131,7 +130,9 @@ async def github_webhook(
     try:
         adapter = GitHubAdapter()
         await adapter.set_commit_status(
-            owner, repo_name, head_sha,
+            owner,
+            repo_name,
+            head_sha,
             state="pending",
             description="CodeSentinel review in progress…",
         )
@@ -145,6 +146,7 @@ async def github_webhook(
 
 
 # ── GitLab / Gitee（接口占位，适配器实现后接入）──────────────────────────────
+
 
 @router.post("/gitlab", status_code=status.HTTP_202_ACCEPTED)
 async def gitlab_webhook() -> dict[str, str]:

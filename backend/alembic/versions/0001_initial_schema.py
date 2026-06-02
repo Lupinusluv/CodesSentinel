@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-05-24
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -78,7 +79,10 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "pending", "running", "done", "failed",
+                "pending",
+                "running",
+                "done",
+                "failed",
                 name="review_status_enum",
             ),
             nullable=False,
@@ -118,7 +122,9 @@ def upgrade() -> None:
         sa.Column(
             "category",
             sa.Enum(
-                "security", "performance", "style",
+                "security",
+                "performance",
+                "style",
                 name="issue_category_enum",
             ),
             nullable=False,
@@ -126,7 +132,9 @@ def upgrade() -> None:
         sa.Column(
             "severity",
             sa.Enum(
-                "critical", "warning", "suggestion",
+                "critical",
+                "warning",
+                "suggestion",
                 name="issue_severity_enum",
             ),
             nullable=False,
@@ -136,9 +144,7 @@ def upgrade() -> None:
         sa.Column("line_end", sa.Integer, nullable=True),
         sa.Column("description", sa.Text, nullable=False),
         sa.Column("suggestion", sa.Text, nullable=True),
-        sa.Column(
-            "fixed", sa.Boolean, nullable=False, server_default=sa.false()
-        ),
+        sa.Column("fixed", sa.Boolean, nullable=False, server_default=sa.false()),
     )
 
     # ── code_chunks ───────────────────────────────────────────────────────────

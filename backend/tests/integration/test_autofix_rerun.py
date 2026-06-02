@@ -24,18 +24,18 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
 # ── fixture：让 task 用 test_engine，避免 module-level singleton 跨 loop ────────
 
+
 @pytest_asyncio.fixture
 async def patched_task(test_engine, monkeypatch):
     """重定向 run_autofix_task 内部的 session factory 到当前 test_engine。"""
     factory = async_sessionmaker(test_engine, expire_on_commit=False, autoflush=False)
-    monkeypatch.setattr(
-        "app.tasks.autofix_task.get_session_factory", lambda: factory
-    )
+    monkeypatch.setattr("app.tasks.autofix_task.get_session_factory", lambda: factory)
     return factory
 
 
 def _patch_graph(monkeypatch, *, syntax_valid: bool, status: PatchStatus):
     """让图直接产出每个 IssueRef 一条 patch，结果由参数控制。"""
+
     async def fake_ainvoke(state):
         return {
             **state,
@@ -75,16 +75,18 @@ async def _seed_review_with_issues(
         s.add(rev)
         await s.flush()
         for ls, le, sev in ranges:
-            s.add(Issue(
-                review_id=rev.id,
-                category=IssueCategory.security,
-                severity=sev,
-                line_start=ls,
-                line_end=le,
-                description="seeded issue",
-                suggestion=None,
-                fixed=False,
-            ))
+            s.add(
+                Issue(
+                    review_id=rev.id,
+                    category=IssueCategory.security,
+                    severity=sev,
+                    line_start=ls,
+                    line_end=le,
+                    description="seeded issue",
+                    suggestion=None,
+                    fixed=False,
+                )
+            )
         await s.commit()
         return rev.id
 
@@ -105,6 +107,7 @@ async def _fixed_count(factory: async_sessionmaker, review_id: uuid.UUID) -> int
 
 # ── 测试 ──────────────────────────────────────────────────────────────────────
 
+
 async def test_rerun_does_not_accumulate_patches(patched_task, monkeypatch):
     """两次 Auto Fix → patches 数量等于第二次产出，不累加。"""
     from app.tasks.autofix_task import run_autofix_task
@@ -121,11 +124,11 @@ async def test_rerun_does_not_accumulate_patches(patched_task, monkeypatch):
 
     await run_autofix_task({}, str(rid))
     first = await _count_patches(patched_task, rid)
-    assert first == 3                   # 3 个独立行 → 3 patches
+    assert first == 3  # 3 个独立行 → 3 patches
 
     await run_autofix_task({}, str(rid))
     second = await _count_patches(patched_task, rid)
-    assert second == 3                  # 重跑仍是 3，不是 6
+    assert second == 3  # 重跑仍是 3，不是 6
 
 
 async def test_rerun_resets_fixed_before_running(patched_task, monkeypatch):
@@ -164,12 +167,10 @@ async def test_same_line_issues_aggregate_to_one_patch(patched_task, monkeypatch
     await run_autofix_task({}, str(rid))
 
     assert await _count_patches(patched_task, rid) == 1
-    assert await _fixed_count(patched_task, rid) == 3   # 整组 issue 都标记
+    assert await _fixed_count(patched_task, rid) == 3  # 整组 issue 都标记
 
 
-async def test_aggregation_attaches_patch_to_critical_representative(
-    patched_task, monkeypatch
-):
+async def test_aggregation_attaches_patch_to_critical_representative(patched_task, monkeypatch):
     """同行多 issue 时，patch.issue_id 必须是 severity 最高那条的 id。"""
     from app.tasks.autofix_task import run_autofix_task
 
@@ -184,16 +185,22 @@ async def test_aggregation_attaches_patch_to_critical_representative(
         s.add(rev)
         await s.flush()
         warning = Issue(
-            review_id=rev.id, category=IssueCategory.style,
+            review_id=rev.id,
+            category=IssueCategory.style,
             severity=IssueSeverity.warning,
-            line_start=3, line_end=3,
-            description="warning issue", fixed=False,
+            line_start=3,
+            line_end=3,
+            description="warning issue",
+            fixed=False,
         )
         critical = Issue(
-            review_id=rev.id, category=IssueCategory.security,
+            review_id=rev.id,
+            category=IssueCategory.security,
             severity=IssueSeverity.critical,
-            line_start=3, line_end=3,
-            description="critical issue", fixed=False,
+            line_start=3,
+            line_end=3,
+            description="critical issue",
+            fixed=False,
         )
         s.add_all([warning, critical])
         await s.commit()

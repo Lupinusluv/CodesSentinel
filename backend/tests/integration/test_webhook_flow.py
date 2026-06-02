@@ -30,12 +30,16 @@ def _sign(body: bytes) -> str:
     return "sha256=" + hmac.new(_SECRET.encode(), body, hashlib.sha256).hexdigest()
 
 
-def _pr_payload(repo_url: str, *, action: str = "opened", pr: int = 7, sha: str = "f" * 40) -> bytes:
-    return json.dumps({
-        "action": action,
-        "pull_request": {"number": pr, "head": {"sha": sha}},
-        "repository": {"html_url": repo_url, "language": "Python"},
-    }).encode()
+def _pr_payload(
+    repo_url: str, *, action: str = "opened", pr: int = 7, sha: str = "f" * 40
+) -> bytes:
+    return json.dumps(
+        {
+            "action": action,
+            "pull_request": {"number": pr, "head": {"sha": sha}},
+            "repository": {"html_url": repo_url, "language": "Python"},
+        }
+    ).encode()
 
 
 async def _post(client, body: bytes, *, sig: str | None, event: str = "pull_request"):
@@ -46,6 +50,7 @@ async def _post(client, body: bytes, *, sig: str | None, event: str = "pull_requ
 
 
 # ── 验签 ──────────────────────────────────────────────────────────────────────
+
 
 async def test_valid_signature_accepted_and_enqueued(http_client, github_repo):
     body = _pr_payload(github_repo.url)
@@ -70,6 +75,7 @@ async def test_missing_signature_rejected(http_client, github_repo):
 
 
 # ── 事件 / action 过滤 ────────────────────────────────────────────────────────
+
 
 async def test_non_pull_request_event_ignored(http_client):
     body = _pr_payload("https://github.com/x/y")

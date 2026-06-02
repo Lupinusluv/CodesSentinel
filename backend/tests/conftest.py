@@ -56,6 +56,7 @@ async def db_session(test_engine):
     # 清理：依赖 ondelete CASCADE 可只清 reviews 即可带走 issues / patches
     async with factory() as cleanup:
         from sqlalchemy import text
+
         # 测试不该碰 repositories / code_chunks 历史数据，逐表清更安全
         for tbl in ["patches", "issues", "reviews"]:
             await cleanup.execute(text(f"DELETE FROM {tbl}"))
@@ -125,6 +126,7 @@ async def github_repo(test_engine):
 
     async with factory() as cleanup:
         from sqlalchemy import text
+
         for tbl in ["patches", "issues", "reviews"]:
             await cleanup.execute(text(f"DELETE FROM {tbl}"))
         obj = await cleanup.get(Repository, repo.id)

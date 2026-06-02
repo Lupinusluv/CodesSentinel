@@ -24,7 +24,9 @@ class CodeChunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     symbol_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
-    symbol_type: Mapped[str | None] = mapped_column(String(32), nullable=True)   # "function" | "class"
+    symbol_type: Mapped[str | None] = mapped_column(
+        String(32), nullable=True
+    )  # "function" | "class"
     content: Mapped[str] = mapped_column(Text, nullable=False)
     start_line: Mapped[int | None] = mapped_column(nullable=True)
     end_line: Mapped[int | None] = mapped_column(nullable=True)

@@ -68,6 +68,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Format check (black, line-length 100)
+        run: black --check app tests scripts alembic main.py
+
       - name: Apply migrations (creates schema + pgvector extension)
         run: alembic upgrade head
 

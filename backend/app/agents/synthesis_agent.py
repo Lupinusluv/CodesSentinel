@@ -26,9 +26,9 @@ async def synthesis_node(state: ReviewState) -> dict:
 
     messages = [
         SystemMessage(content=SYNTHESIS_SYSTEM_PROMPT),
-        HumanMessage(content=build_synthesis_prompt(
-            state["source_code"], state["language"], issues_json
-        )),
+        HumanMessage(
+            content=build_synthesis_prompt(state["source_code"], state["language"], issues_json)
+        ),
     ]
     # 标记 "synthesis" tag，review_task 用 astream_events 过滤此 tag 推流式 token
     llm = get_llm(temperature=0.3, tags=["synthesis"])

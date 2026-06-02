@@ -64,9 +64,7 @@ def _group_issues_by_range(
     for group in groups.values():
         group_sorted = sorted(
             group,
-            key=lambda x: _SEVERITY_ORDER.get(
-                getattr(x.severity, "value", x.severity), 99
-            ),
+            key=lambda x: _SEVERITY_ORDER.get(getattr(x.severity, "value", x.severity), 99),
         )
         rep = group_sorted[0]
         if len(group_sorted) == 1:
@@ -88,9 +86,7 @@ def _group_issues_by_range(
     if db_issues:
         global_rep = min(
             db_issues,
-            key=lambda x: _SEVERITY_ORDER.get(
-                getattr(x.severity, "value", x.severity), 99
-            ),
+            key=lambda x: _SEVERITY_ORDER.get(getattr(x.severity, "value", x.severity), 99),
         )
         global_rep_id: str | None = str(global_rep.id)
     else:
@@ -126,9 +122,7 @@ async def run_autofix_task(ctx: dict, review_id: str) -> None:
 
         # 清旧 patch + 重置 fixed —— 重跑时避免累加，避免上次成功标记残留
         await db.execute(delete(Patch).where(Patch.review_id == uid))
-        await db.execute(
-            update(Issue).where(Issue.review_id == uid).values(fixed=False)
-        )
+        await db.execute(update(Issue).where(Issue.review_id == uid).values(fixed=False))
 
         result = await db.execute(select(Issue).where(Issue.review_id == uid))
         db_issues = list(result.scalars())
@@ -166,17 +160,19 @@ async def run_autofix_task(ctx: dict, review_id: str) -> None:
         issue_by_id = {str(i.id): i for i in db_issues}
 
         for p in patches:
-            db.add(Patch(
-                review_id=uid,
-                issue_id=uuid.UUID(p.issue_id),
-                original_code=p.original_code,
-                fixed_code=p.fixed_code,
-                diff=p.diff,
-                syntax_valid=p.syntax_valid,
-                error_msg=p.error_msg,
-                status=p.status,
-                is_final=p.is_final,
-            ))
+            db.add(
+                Patch(
+                    review_id=uid,
+                    issue_id=uuid.UUID(p.issue_id),
+                    original_code=p.original_code,
+                    fixed_code=p.fixed_code,
+                    diff=p.diff,
+                    syntax_valid=p.syntax_valid,
+                    error_msg=p.error_msg,
+                    status=p.status,
+                    is_final=p.is_final,
+                )
+            )
             # final patch 不参与 issues.fixed 标记，避免与 per-issue patch 重复打 True
             if p.is_final:
                 continue

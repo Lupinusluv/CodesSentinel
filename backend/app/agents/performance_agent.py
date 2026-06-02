@@ -13,9 +13,11 @@ async def performance_node(state: ReviewState) -> dict:
     """专注性能问题的 Agent 节点。返回 {"issues": [...]} 供 Reducer 追加。"""
     messages = [
         SystemMessage(content=PERFORMANCE_SYSTEM_PROMPT),
-        HumanMessage(content=build_agent_prompt(
-            state["source_code"], state["language"], state.get("rag_context", "")
-        )),
+        HumanMessage(
+            content=build_agent_prompt(
+                state["source_code"], state["language"], state.get("rag_context", "")
+            )
+        ),
     ]
     llm = get_llm(temperature=0.0)
     response = await llm.ainvoke(messages)

@@ -42,11 +42,7 @@ def test_non_array_json_returns_empty_and_false():
 
 
 def test_json_fence_wrapped_array_parses_and_true():
-    text = (
-        '```json\n'
-        '[{"severity": "warning", "description": "magic number"}]\n'
-        '```'
-    )
+    text = "```json\n" '[{"severity": "warning", "description": "magic number"}]\n' "```"
     issues, ok = parse_agent_json(text, "style", "style_agent")
     assert ok is True
     assert len(issues) == 1

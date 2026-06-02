@@ -31,7 +31,8 @@ async def _seed_done_review_with_old_patch(db_session) -> tuple[uuid.UUID, uuid.
         review_id=rev.id,
         category=IssueCategory.security,
         severity=IssueSeverity.warning,
-        line_start=1, line_end=1,
+        line_start=1,
+        line_end=1,
         description="seed",
         fixed=True,
     )
@@ -80,6 +81,7 @@ async def test_trigger_clears_via_db_query(http_client, db_session):
     # 用新 session 避免事务隔离误判
     from tests.conftest import TEST_DATABASE_URL
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
     engine = create_async_engine(TEST_DATABASE_URL, future=True, pool_size=2, max_overflow=0)
     try:
         factory = async_sessionmaker(engine, expire_on_commit=False)

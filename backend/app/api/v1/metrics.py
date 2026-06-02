@@ -20,19 +20,24 @@ class MetricsSummary(BaseModel):
 @router.get("", response_model=MetricsSummary)
 async def metrics_summary(db: DBSessionDep) -> MetricsSummary:
     # Aggregate over completed reviews
-    row = (await db.execute(
-        select(
-            func.count(Review.id),
-            func.coalesce(func.sum(Review.total_issues), 0),
-            func.coalesce(func.avg(Review.duration_ms), 0),
-        ).where(Review.status == ReviewStatus.done)
-    )).one()
+    row = (
+        await db.execute(
+            select(
+                func.count(Review.id),
+                func.coalesce(func.sum(Review.total_issues), 0),
+                func.coalesce(func.avg(Review.duration_ms), 0),
+            ).where(Review.status == ReviewStatus.done)
+        )
+    ).one()
 
     # Per-category × per-severity distribution
-    dist_rows = (await db.execute(
-        select(Issue.category, Issue.severity, func.count(Issue.id))
-        .group_by(Issue.category, Issue.severity)
-    )).all()
+    dist_rows = (
+        await db.execute(
+            select(Issue.category, Issue.severity, func.count(Issue.id)).group_by(
+                Issue.category, Issue.severity
+            )
+        )
+    ).all()
 
     issues_by_category: dict[str, int] = {}
     issues_by_severity: dict[str, int] = {}
@@ -53,10 +58,13 @@ async def metrics_summary(db: DBSessionDep) -> MetricsSummary:
 
 @router.get("/issues")
 async def issues_distribution(db: DBSessionDep) -> dict[str, dict[str, int]]:
-    rows = (await db.execute(
-        select(Issue.category, Issue.severity, func.count(Issue.id))
-        .group_by(Issue.category, Issue.severity)
-    )).all()
+    rows = (
+        await db.execute(
+            select(Issue.category, Issue.severity, func.count(Issue.id)).group_by(
+                Issue.category, Issue.severity
+            )
+        )
+    ).all()
 
     result: dict[str, dict[str, int]] = {}
     for cat, sev, cnt in rows:

@@ -20,9 +20,7 @@ class GitPlatformAdapter(ABC):
         """获取 PR 的 unified diff 文本。"""
 
     @abstractmethod
-    async def post_review_comment(
-        self, owner: str, repo: str, pr_number: int, body: str
-    ) -> None:
+    async def post_review_comment(self, owner: str, repo: str, pr_number: int, body: str) -> None:
         """在 PR 下发布一条审查评论。"""
 
     @abstractmethod
@@ -31,7 +29,7 @@ class GitPlatformAdapter(ABC):
         owner: str,
         repo: str,
         sha: str,
-        state: str,          # "pending" | "success" | "failure" | "error"
+        state: str,  # "pending" | "success" | "failure" | "error"
         description: str,
         context: str = "CodeSentinel",
     ) -> None:
@@ -44,8 +42,6 @@ class GitPlatformAdapter(ABC):
         """验证 HMAC-SHA256 签名（GitHub / GitLab 格式：'sha256=<hex>'）。"""
         if not signature.startswith("sha256="):
             return False
-        expected = hmac.new(
-            secret.encode(), payload, hashlib.sha256
-        ).hexdigest()
+        expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
         received = signature.removeprefix("sha256=")
         return hmac.compare_digest(expected, received)

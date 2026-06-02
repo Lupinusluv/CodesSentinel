@@ -39,9 +39,7 @@ class GitHubAdapter(GitPlatformAdapter):
             resp.raise_for_status()
             return resp.text
 
-    async def post_review_comment(
-        self, owner: str, repo: str, pr_number: int, body: str
-    ) -> None:
+    async def post_review_comment(self, owner: str, repo: str, pr_number: int, body: str) -> None:
         """在 PR 下发布审查评论。"""
         url = f"{_GITHUB_API}/repos/{owner}/{repo}/issues/{pr_number}/comments"
         async with httpx.AsyncClient(timeout=15) as client:
@@ -77,7 +75,10 @@ class GitHubAdapter(GitPlatformAdapter):
             resp.raise_for_status()
         log.info(
             "github_status_set",
-            owner=owner, repo=repo, sha=sha[:8], state=state,
+            owner=owner,
+            repo=repo,
+            sha=sha[:8],
+            state=state,
         )
 
     # ── 工具方法 ───────────────────────────────────────────────────────────────

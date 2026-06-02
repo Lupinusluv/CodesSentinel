@@ -45,15 +45,15 @@ def _check_python(code: str) -> tuple[bool, str | None]:
 async def _check_node(code: str, lang: str) -> tuple[bool, str | None]:
     suffix = ".ts" if lang in _TS_LANGS else ".js"
     # delete=False 是为了让子进程能在 Windows 上读到文件；finally 里手动删
-    tmp = tempfile.NamedTemporaryFile(
-        mode="w", suffix=suffix, delete=False, encoding="utf-8"
-    )
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=suffix, delete=False, encoding="utf-8")
     try:
         tmp.write(code)
         tmp.close()
         try:
             proc = await asyncio.create_subprocess_exec(
-                "node", "--check", tmp.name,
+                "node",
+                "--check",
+                tmp.name,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

@@ -34,6 +34,7 @@ log = get_logger(__name__)
 
 # ── 结构化输出 ────────────────────────────────────────────────────────────────
 
+
 class IssueRef(BaseModel):
     """task 层从 DB Issue 投影出的轻量入参。"""
 
@@ -106,37 +107,34 @@ def _failed_patch(issue_id: str, *, original: str = "", reason: str) -> PatchOut
 
 # ── 节点 ──────────────────────────────────────────────────────────────────────
 
-async def _generate_one(
-    source_code: str, language: str, issue: IssueRef
-) -> PatchOutput:
+
+async def _generate_one(source_code: str, language: str, issue: IssueRef) -> PatchOutput:
     if not source_code.strip():
         return _failed_patch(issue.issue_id, reason="empty source code")
 
     messages = [
         SystemMessage(content=AUTOFIX_SYSTEM_PROMPT),
-        HumanMessage(content=build_autofix_prompt(
-            language=language,
-            source_code=source_code,
-            line_start=issue.line_start,
-            line_end=issue.line_end,
-            description=issue.description,
-            suggestion=issue.suggestion,
-        )),
+        HumanMessage(
+            content=build_autofix_prompt(
+                language=language,
+                source_code=source_code,
+                line_start=issue.line_start,
+                line_end=issue.line_end,
+                description=issue.description,
+                suggestion=issue.suggestion,
+            )
+        ),
     ]
     llm = get_llm(temperature=0.0, tags=["autofix"])
     try:
         response = await llm.ainvoke(messages)
     except Exception as exc:
         log.warning("autofix_llm_error", issue_id=issue.issue_id, error=str(exc))
-        return _failed_patch(
-            issue.issue_id, original=source_code, reason=f"LLM call failed: {exc}"
-        )
+        return _failed_patch(issue.issue_id, original=source_code, reason=f"LLM call failed: {exc}")
 
     fixed = _extract_code(response.content or "")
     if not fixed:
-        return _failed_patch(
-            issue.issue_id, original=source_code, reason="LLM returned empty fix"
-        )
+        return _failed_patch(issue.issue_id, original=source_code, reason="LLM returned empty fix")
 
     return PatchOutput(
         issue_id=issue.issue_id,
@@ -176,12 +174,16 @@ async def validate_patches_node(state: AutoFixState) -> dict:
             continue
         valid, err = await check_syntax(p.fixed_code, state["language"])
         diff = make_unified_diff(p.original_code, p.fixed_code)
-        validated.append(p.model_copy(update={
-            "diff": diff,
-            "syntax_valid": valid,
-            "error_msg": err,
-            "status": PatchStatus.done if valid else PatchStatus.failed,
-        }))
+        validated.append(
+            p.model_copy(
+                update={
+                    "diff": diff,
+                    "syntax_valid": valid,
+                    "error_msg": err,
+                    "status": PatchStatus.done if valid else PatchStatus.failed,
+                }
+            )
+        )
     log.info(
         "autofix_validate_done",
         review_id=state["review_id"],
@@ -210,12 +212,14 @@ async def merge_all_node(state: AutoFixState) -> dict:
 
     messages = [
         SystemMessage(content=AUTOFIX_FINAL_SYSTEM_PROMPT),
-        HumanMessage(content=build_autofix_final_prompt(
-            language=state["language"],
-            source_code=state["source_code"],
-            all_issues_desc=desc_block,
-            all_issues_suggestions=sug_block,
-        )),
+        HumanMessage(
+            content=build_autofix_final_prompt(
+                language=state["language"],
+                source_code=state["source_code"],
+                all_issues_desc=desc_block,
+                all_issues_suggestions=sug_block,
+            )
+        ),
     ]
 
     llm = get_llm(temperature=0.0, tags=["autofix-final"])
@@ -259,6 +263,7 @@ async def merge_all_node(state: AutoFixState) -> dict:
 
 
 # ── 图编译 ────────────────────────────────────────────────────────────────────
+
 
 def build_autofix_graph() -> StateGraph:
     graph = StateGraph(AutoFixState)
