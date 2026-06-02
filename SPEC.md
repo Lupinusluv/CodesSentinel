@@ -257,7 +257,6 @@ codessentinel/
 | id | UUID | 主键 |
 | platform | enum | github / gitlab / gitee |
 | url | str | 仓库地址 |
-| webhook_secret | str | Webhook 验签密钥 |
 | indexed_at | timestamp | 最近一次 RAG 索引时间 |
 
 ### reviews

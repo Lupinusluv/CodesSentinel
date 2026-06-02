@@ -175,7 +175,7 @@ core/           零依赖，所有层均可导入
 
 models/         只依赖 core/
   base.py        Base + TimestampMixin（created_at/updated_at）
-  repository.py  Repository ORM（platform, url, webhook_secret, indexed_at）
+  repository.py  Repository ORM（platform, url, indexed_at）
   review.py      Review ORM（status enum, pr_number, duration_ms, total_issues）
   issue.py       Issue ORM（category, severity, file_path, line_start/end, fixed）
 

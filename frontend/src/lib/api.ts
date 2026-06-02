@@ -37,7 +37,7 @@ export interface Repository {
 
 export const repositoryApi = {
   list: () => http.get<Repository[]>('/repositories'),
-  create: (payload: { platform: string; url: string; webhook_secret: string }) =>
+  create: (payload: { platform: string; url: string }) =>
     http.post<Repository>('/repositories', payload),
   delete: (id: string) => http.delete(`/repositories/${id}`),
   triggerIndex: (id: string) =>

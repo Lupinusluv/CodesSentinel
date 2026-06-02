@@ -79,11 +79,11 @@ On the home page (**🔍 New Review**), paste a snippet, pick a language, and hi
 ### B. GitHub PR mode (auto-review every pull request)
 Let CodeSentinel review your real PRs automatically. GitHub must be able to reach your backend's webhook endpoint, so the backend has to be **publicly reachable** — a cloud server, or a tunnel like `ngrok http 8000` from a laptop. Then:
 
-1. **Register the repo** — 🗂 Repos page → repo URL + a webhook secret.
+1. **Register the repo** — 🗂 Repos page → repo URL.
 2. **Add the GitHub webhook** — repo Settings → Webhooks → Add:
    - Payload URL: `http://<public-addr>:8000/api/v1/webhooks/github`
-   - Content type `application/json`, Secret = the same string, Events = **Pull requests** only.
-   - The secret must match in **all three places** (GitHub webhook config / repo registration / `.env` `GITHUB_WEBHOOK_SECRET`), and the repo URL must match GitHub's `html_url` exactly.
+   - Content type `application/json`, Secret = your webhook secret, Events = **Pull requests** only.
+   - The secret must match in **two places** (GitHub webhook config / `.env` `GITHUB_WEBHOOK_SECRET`), and the repo URL must match GitHub's `html_url` exactly.
 3. *(Optional)* **Index the repo** for RAG — 🗂 Repos → 触发索引, so reviews can cite related code from the same repo. Needs a valid `DASHSCOPE_API_KEY` and source files on the default branch.
 4. Open a PR → the commit gets a CodeSentinel status check + a review comment.
 

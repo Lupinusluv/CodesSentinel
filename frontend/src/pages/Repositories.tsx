@@ -7,7 +7,6 @@ type Platform = typeof PLATFORMS[number]
 export function Repositories() {
   const [platform, setPlatform] = useState<Platform>('github')
   const [url, setUrl]           = useState('')
-  const [secret, setSecret]     = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError]   = useState<string | null>(null)
 
@@ -23,14 +22,13 @@ export function Repositories() {
   }, [])
 
   async function handleCreate() {
-    if (!url.trim() || !secret.trim()) return
+    if (!url.trim()) return
     setSubmitting(true)
     setFormError(null)
     try {
-      const res = await repositoryApi.create({ platform, url: url.trim(), webhook_secret: secret.trim() })
+      const res = await repositoryApi.create({ platform, url: url.trim() })
       setRepos(prev => [res.data, ...prev])
       setUrl('')
-      setSecret('')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
       setFormError(msg ?? '注册失败，请检查 URL 格式')
@@ -94,23 +92,12 @@ export function Repositories() {
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-400">Webhook Secret</label>
-          <input
-            type="password"
-            value={secret}
-            onChange={e => setSecret(e.target.value)}
-            placeholder="your-webhook-secret"
-            className="bg-slate-800 text-slate-200 text-sm rounded px-3 py-2 border border-slate-700 focus:outline-none focus:border-slate-500"
-          />
-        </div>
-
         {formError && (
           <p className="text-red-400 text-xs">{formError}</p>
         )}
 
         <button
-          disabled={!url.trim() || !secret.trim() || submitting}
+          disabled={!url.trim() || submitting}
           className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
           onClick={handleCreate}
         >
