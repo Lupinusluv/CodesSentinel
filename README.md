@@ -4,12 +4,16 @@
 
 CodeSentinel ingests Git webhooks, dispatches three specialized review agents (Security / Performance / Style) in parallel via LangGraph, and pushes findings to the browser through Redis Pub/Sub + WebSockets. It is a portfolio project demonstrating production patterns for LLM-driven code analysis: structured agent outputs, RAG-grounded review context, async task pipelines, and — most importantly — **measurable claims backed by a hand-crafted evaluation set**.
 
+### 🔗 Live demo — [tantai.xyz](https://tantai.xyz)
+
+**Try it right now, no signup and no GitHub token.** Open the live instance, go to **🔍 New Review**, paste any code snippet, and watch three agents stream findings in parallel followed by a synthesis report. The full GitHub-PR auto-review flow is described under [Quickstart](#quickstart) below if you want to self-host.
+
 ---
 
 ## Architecture
 
 ```
-GitHub/GitLab/Gitee Webhook
+Git platform Webhook  (GitHub today; GitLab/Gitee on roadmap)
         │
         ▼
    FastAPI ──► ARQ queue ──► review_task
@@ -158,7 +162,7 @@ backend/
 │   ├── agents/       LangGraph nodes (security/performance/style/synthesis) + prompts
 │   ├── api/v1/       FastAPI routers (reviews, repositories, webhooks, metrics, ws)
 │   ├── rag/          AST chunker + embeddings (DashScope) + pgvector cosine retriever
-│   ├── platform/     Git platform adapters (GitHub/GitLab/Gitee)
+│   ├── platform/     Git platform adapters (GitHub implemented; GitLab/Gitee planned — see Roadmap)
 │   ├── tasks/        ARQ tasks (review pipeline + indexing)
 │   └── models/       SQLAlchemy ORM
 ├── scripts/
@@ -176,11 +180,17 @@ frontend/
 
 ---
 
-## Roadmap
+## Status & Roadmap
 
-- **v0.4** — Semantic matching for the eval scorer (embedding similarity replaces literal keyword check) + multi-file eval samples to actually measure RAG contribution.
-- **v0.5** — AutoFix agent: generate unified-diff patches, validate them with a syntax check (`ast.parse` / `node --check` — no code execution or test running yet), surface "one-click fix" in the UI. *(Sandboxed execution + targeted test runs are future work.)*
-- **v0.6** — Pre-classification router node before the agent fan-out — only activate the relevant agents per file/diff to further reduce cross-category prediction volume.
+**Shipped (current: v0.5.2):** multi-agent parallel review + RAG (pgvector / DashScope embeddings) · GitHub PR webhook → status check + review comment · AutoFix agent (unified-diff patches validated with `ast.parse` / `node --check` — no code execution yet) · full Docker Compose stack · **public HTTPS deployment with a live demo at [tantai.xyz](https://tantai.xyz)**.
+
+**Planned:**
+
+- **GitLab / Gitee adapters** — the `GitPlatformAdapter` abstraction is in place; only GitHub is implemented today. Adding a platform means implementing one adapter, no changes to the review pipeline.
+- **CI** — GitHub Actions running the full test suite against a pgvector service (the integration tests currently require a local Postgres and skip without one).
+- **Semantic eval scorer** — embedding similarity to replace the literal keyword check, plus multi-file eval samples to actually measure RAG contribution.
+- **Pre-classification router** — a router node before the agent fan-out that only activates the relevant agents per file/diff, further reducing cross-category prediction volume.
+- **i18n** — English/Chinese UI toggle (the UI is currently Chinese-first).
 
 ---
 
