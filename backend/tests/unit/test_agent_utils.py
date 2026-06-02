@@ -5,7 +5,6 @@ ok=False 时上游 Agent 才能把整类问题被吞掉的事实上报给前端�
 """
 
 from app.agents.utils import parse_agent_json
-from app.agents.state import IssueOutput
 from app.models.issue import IssueCategory
 
 

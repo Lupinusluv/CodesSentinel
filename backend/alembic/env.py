@@ -3,22 +3,23 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from alembic import context
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy.pool import NullPool
+
+from alembic import context
 
 # 让 alembic 能 import app.*
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.core.config import get_settings
-from app.models.base import Base  # noqa: F401 — 触发所有子模型注册
+import app.models.code_chunk  # noqa: F401
+import app.models.issue  # noqa: F401
+import app.models.patch  # noqa: F401
 
 # 显式 import 所有 model，确保 Base.metadata 包含全部表
 import app.models.repository  # noqa: F401
 import app.models.review  # noqa: F401
-import app.models.issue  # noqa: F401
-import app.models.code_chunk  # noqa: F401
-import app.models.patch  # noqa: F401
+from app.core.config import get_settings
+from app.models.base import Base  # noqa: F401 — 触发所有子模型注册
 
 config = context.config
 if config.config_file_name is not None:

@@ -13,7 +13,7 @@ setup_logging()
 log = get_logger(__name__)
 
 # 单一版本号来源，避免多处硬编码漂移（曾长期停在 0.1.0）
-APP_VERSION = "0.5.2"
+APP_VERSION = "0.5.3"
 
 
 @asynccontextmanager

@@ -27,11 +27,17 @@ const AGENT_LABELS: Record<AgentName, string> = {
 
 const AGENT_ORDER: AgentName[] = ['security', 'performance', 'style', 'synthesis']
 
+const CATEGORY_LABELS: Record<string, string> = {
+  security:    '安全',
+  performance: '性能',
+  style:       '风格',
+}
+
 export function NewReview() {
   const [code, setCode] = useState('')
   const [language, setLanguage] = useState('python')
   const navigate = useNavigate()
-  const { phase, reviewId, streamText, review, errorMsg, agentStatuses, startReview } = useReview()
+  const { phase, reviewId, streamText, review, errorMsg, parseFailures, agentStatuses, startReview } = useReview()
 
   const isRunning = phase === 'submitting' || phase === 'streaming'
   const isDone    = phase === 'done'
@@ -125,6 +131,12 @@ export function NewReview() {
         {isError && (
           <div className="rounded-lg bg-red-950 border border-red-800 text-red-300 text-sm px-4 py-3">
             {errorMsg}
+          </div>
+        )}
+
+        {isDone && parseFailures.length > 0 && (
+          <div className="rounded-lg bg-amber-950 border border-amber-800 text-amber-300 text-sm px-4 py-3">
+            ⚠️ {parseFailures.map(c => CATEGORY_LABELS[c] ?? c).join('、')} 分析结果解析失败，本次可能漏报对应类别的问题，建议重试。
           </div>
         )}
 

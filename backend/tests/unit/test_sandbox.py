@@ -8,7 +8,6 @@ import pytest
 from app.sandbox.executor import check_syntax
 from app.sandbox.validator import make_unified_diff, validate_patch
 
-
 # ── check_syntax: Python ──────────────────────────────────────────────────────
 
 

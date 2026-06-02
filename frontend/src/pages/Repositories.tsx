@@ -66,19 +66,28 @@ export function Repositories() {
         <h2 className="text-base font-semibold text-white">注册 Git 仓库</h2>
 
         <div className="flex gap-2">
-          {PLATFORMS.map(p => (
-            <button
-              key={p}
-              onClick={() => setPlatform(p)}
-              className={`flex-1 py-2 rounded text-sm transition-colors ${
-                platform === p
-                  ? 'bg-indigo-700 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
-            >
-              {p}
-            </button>
-          ))}
+          {PLATFORMS.map(p => {
+            const isSupported = p === 'github'
+            return (
+              <button
+                key={p}
+                disabled={!isSupported}
+                onClick={() => setPlatform(p)}
+                className={`flex-1 py-2 rounded text-sm transition-colors ${
+                  !isSupported
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                    : platform === p
+                      ? 'bg-indigo-700 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                }`}
+              >
+                {p}
+                {!isSupported && (
+                  <span className="ml-1 text-[10px] text-slate-500 align-middle">roadmap</span>
+                )}
+              </button>
+            )
+          })}
         </div>
 
         <div className="flex flex-col gap-1">

@@ -68,6 +68,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Lint (ruff — import order + pyflakes)
+        run: ruff check app tests scripts alembic main.py
+
       - name: Format check (black, line-length 100)
         run: black --check app tests scripts alembic main.py
 

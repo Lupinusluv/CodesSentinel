@@ -28,7 +28,6 @@ import app.models  # noqa: F401, E402  触发所有 model 注册
 from app.core.dependencies import get_arq_dep, get_db_session  # noqa: E402
 from main import app as fastapi_app  # noqa: E402
 
-
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
 
 

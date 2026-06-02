@@ -15,6 +15,7 @@ import json
 
 from arq import ArqRedis
 from fastapi import APIRouter, Header, HTTPException, Request, status
+from sqlalchemy import select
 
 from app.core.config import get_settings
 from app.core.dependencies import ArqPoolDep, DBSessionDep
@@ -23,7 +24,6 @@ from app.models.repository import Repository
 from app.models.review import Review, ReviewStatus
 from app.platform.adapters.github import GitHubAdapter
 from app.platform.base import GitPlatformAdapter
-from sqlalchemy import select
 
 log = get_logger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
