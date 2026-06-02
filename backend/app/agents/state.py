@@ -30,5 +30,8 @@ class ReviewState(TypedDict):
     language: str
     rag_context: str                                    # RAG 节点写入，Agent 节点只读
     issues: Annotated[list[IssueOutput], operator.add]  # 并行节点安全追加
+    # 复用 operator.add Reducer：JSON 解析失败的 Agent 安全追加自己的 category 名，
+    # 让"整类问题被吞掉"成为可见信号而非静默漏报
+    parse_failures: Annotated[list[str], operator.add]
     report_text: str                                    # Synthesis 节点写入
     error: str | None                                   # 任意节点写入错误信息

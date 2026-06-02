@@ -2,7 +2,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.llm import get_llm
 from app.agents.prompts import STYLE_SYSTEM_PROMPT, build_agent_prompt
-from app.agents.state import IssueOutput, ReviewState
+from app.agents.state import ReviewState
 from app.agents.utils import parse_agent_json
 from app.core.logging import get_logger
 
@@ -19,6 +19,7 @@ async def style_node(state: ReviewState) -> dict:
     ]
     llm = get_llm(temperature=0.0)
     response = await llm.ainvoke(messages)
-    issues: list[IssueOutput] = parse_agent_json(response.content, "style", "style_agent")
+    issues, ok = parse_agent_json(response.content, "style", "style_agent")
     log.info("style_agent_done", issue_count=len(issues))
-    return {"issues": issues}
+    # 解析失败时上报 category，让 review_task 把信号穿到前端 done 事件
+    return {"issues": issues, "parse_failures": [] if ok else ["style"]}
