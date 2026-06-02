@@ -1,5 +1,7 @@
 # CodeSentinel
 
+[![CI](https://github.com/Lupinusluv/CodesSentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Lupinusluv/CodesSentinel/actions/workflows/ci.yml)
+
 > AI-powered code review platform — a multi-agent LangGraph system that audits pull requests in parallel and streams findings to a real-time dashboard.
 
 CodeSentinel ingests Git webhooks, dispatches three specialized review agents (Security / Performance / Style) in parallel via LangGraph, and pushes findings to the browser through Redis Pub/Sub + WebSockets. It is a portfolio project demonstrating production patterns for LLM-driven code analysis: structured agent outputs, RAG-grounded review context, async task pipelines, and — most importantly — **measurable claims backed by a hand-crafted evaluation set**.
