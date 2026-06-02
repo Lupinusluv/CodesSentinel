@@ -12,6 +12,9 @@ from app.core.logging import get_logger, setup_logging
 setup_logging()
 log = get_logger(__name__)
 
+# 单一版本号来源，避免多处硬编码漂移（曾长期停在 0.1.0）
+APP_VERSION = "0.5.2"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,7 +30,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="CodeSentinel API",
         description="AI 代码智能审查与自动修复平台",
-        version="0.1.0",
+        version=APP_VERSION,
         docs_url="/docs",
         redoc_url="/redoc",
         lifespan=lifespan,
@@ -48,7 +51,7 @@ def create_app() -> FastAPI:
     async def root() -> dict[str, str]:
         return {
             "name": "CodeSentinel",
-            "version": "0.1.0",
+            "version": APP_VERSION,
             "docs": "/docs",
         }
 
