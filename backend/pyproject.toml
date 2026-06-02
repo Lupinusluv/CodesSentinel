@@ -1,3 +1,12 @@
 [tool.black]
 line-length = 100
 target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# I = import 排序（isort，black 兼容）；F = pyflakes（未用导入 / 未定义名等真 bug）。
+# 只开这两类：补上 black 不管的 import 顺序，并抓静默错误，不引入大量风格噪音。
+select = ["I", "F"]

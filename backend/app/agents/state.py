@@ -1,10 +1,10 @@
 import operator
 from typing import Annotated
 
+from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from app.models.issue import IssueCategory, IssueSeverity
-from pydantic import BaseModel
 
 
 class IssueOutput(BaseModel):

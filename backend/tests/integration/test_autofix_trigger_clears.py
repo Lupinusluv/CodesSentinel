@@ -79,8 +79,9 @@ async def test_trigger_clears_via_db_query(http_client, db_session):
     assert resp.status_code == 202
 
     # 用新 session 避免事务隔离误判
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
     from tests.conftest import TEST_DATABASE_URL
-    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
     engine = create_async_engine(TEST_DATABASE_URL, future=True, pool_size=2, max_overflow=0)
     try:

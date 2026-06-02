@@ -1,7 +1,7 @@
 """Unit tests for deduplicate_issues in synthesis_agent."""
 
-from app.agents.synthesis_agent import deduplicate_issues
 from app.agents.state import IssueOutput
+from app.agents.synthesis_agent import deduplicate_issues
 from app.models.issue import IssueCategory, IssueSeverity
 
 

@@ -1,6 +1,6 @@
 """Unit tests for chunk_code in rag/chunker."""
 
-from app.rag.chunker import Chunk, chunk_code
+from app.rag.chunker import chunk_code
 
 PYTHON_CODE = """\
 import os

@@ -1,10 +1,10 @@
+from fastapi import APIRouter
+from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.core.dependencies import DBSessionDep
 from app.models.issue import Issue
 from app.models.review import Review, ReviewStatus
-from fastapi import APIRouter
-from pydantic import BaseModel
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
 

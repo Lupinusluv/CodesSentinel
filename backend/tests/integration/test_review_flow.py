@@ -7,7 +7,6 @@
 import uuid
 
 import pytest
-from sqlalchemy import select
 
 from app.models.issue import Issue, IssueCategory, IssueSeverity
 from app.models.patch import Patch, PatchStatus

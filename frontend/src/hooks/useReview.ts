@@ -15,6 +15,7 @@ export function useReview() {
   const [streamText, setStreamText] = useState('')
   const [review, setReview] = useState<Review | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
+  const [parseFailures, setParseFailures] = useState<string[]>([])
   const [agentStatuses, setAgentStatuses] = useState<Record<AgentName, AgentStatus>>({
     security:    { status: 'pending' },
     performance: { status: 'pending' },
@@ -22,6 +23,7 @@ export function useReview() {
     synthesis:   { status: 'pending' },
   })
   const wsRef = useRef<WebSocket | null>(null)
+  const reachedTerminalRef = useRef(false)
 
   useEffect(() => () => wsRef.current?.close(), [])
 
@@ -38,6 +40,8 @@ export function useReview() {
     setStreamText('')
     setReview(null)
     setErrorMsg('')
+    setParseFailures([])
+    reachedTerminalRef.current = false
     resetAgentStatuses()
     setPhase('submitting')
 
@@ -69,19 +73,33 @@ export function useReview() {
           // v0.1.0 兼容：单节点模式下的 token
           setStreamText(prev => prev + msg.content)
         } else if (msg.type === 'done') {
+          reachedTerminalRef.current = true
+          setParseFailures(msg.parse_failures ?? [])
           reviewApi.get(id).then(res => {
             setReview(res.data)
             setPhase('done')
+          }).catch(() => {
+            setErrorMsg('加载审查结果失败，请刷新重试')
+            setPhase('error')
           })
         } else if (msg.type === 'error') {
+          reachedTerminalRef.current = true
           setErrorMsg(msg.message)
           setPhase('error')
         }
       }
 
       ws.onerror = () => {
+        reachedTerminalRef.current = true
         setErrorMsg('WebSocket 连接失败，请检查后端服务是否运行')
         setPhase('error')
+      }
+
+      ws.onclose = () => {
+        if (!reachedTerminalRef.current) {
+          setErrorMsg('连接中断，请重试')
+          setPhase('error')
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '请求失败'
@@ -90,5 +108,5 @@ export function useReview() {
     }
   }
 
-  return { phase, reviewId, streamText, review, errorMsg, agentStatuses, startReview }
+  return { phase, reviewId, streamText, review, errorMsg, parseFailures, agentStatuses, startReview }
 }

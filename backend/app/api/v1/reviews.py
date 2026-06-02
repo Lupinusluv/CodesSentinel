@@ -54,7 +54,9 @@ async def list_reviews(db: DBSessionDep) -> list[ReviewResponse]:
         .order_by(Review.created_at.desc())
         .limit(50)
     )
-    return [_to_response(r, list(r.issues)) for r in result.scalars()]
+    # list 视图省去 source_code / report_text（PR diff 全文 + 报告全文两个大 Text 字段），
+    # 避免 50 条记录的响应体膨胀；详情页 get_review 再带全量。
+    return [_to_response(r, list(r.issues), include_full=False) for r in result.scalars()]
 
 
 @router.post("", status_code=status.HTTP_202_ACCEPTED)
@@ -108,7 +110,10 @@ async def get_review(review_id: str, db: DBSessionDep) -> ReviewResponse:
 # ── 内部工具 ──────────────────────────────────────────────────────────────────
 
 
-def _to_response(review: Review, issues: list[Issue] | None = None) -> ReviewResponse:
+def _to_response(
+    review: Review, issues: list[Issue] | None = None, *, include_full: bool = True
+) -> ReviewResponse:
+    # include_full=False（list 视图）省略 source_code / report_text 两个大字段，仅返回摘要 + issues。
     return ReviewResponse(
         id=str(review.id),
         status=review.status.value,
@@ -116,8 +121,8 @@ def _to_response(review: Review, issues: list[Issue] | None = None) -> ReviewRes
         total_issues=review.total_issues,
         duration_ms=review.duration_ms,
         created_at=review.created_at.isoformat(),
-        report_text=review.report_text,
-        source_code=review.source_code,
+        report_text=review.report_text if include_full else None,
+        source_code=review.source_code if include_full else None,
         issues=[
             IssueResponse(
                 id=str(i.id),
