@@ -54,6 +54,6 @@ export type StreamMessage =
   | { type: 'agent_start';      agent: AgentName }
   | { type: 'agent_done';       agent: AgentName; issue_count: number }
   | { type: 'synthesis_token';  content: string }
-  | { type: 'done';             issue_count: number; duration_ms: number }
+  | { type: 'done';             issue_count: number; duration_ms: number; parse_failures?: string[] }
   | { type: 'error';            message: string }
   | { type: 'info';             message: string }

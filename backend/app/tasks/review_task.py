@@ -4,7 +4,7 @@
   {"type": "agent_start",      "agent": "security"|"performance"|"style"|"synthesis"}
   {"type": "agent_done",       "agent": "...", "issue_count": N}
   {"type": "synthesis_token",  "content": "..."}   ← synthesis LLM 逐 token
-  {"type": "done",             "issue_count": N, "duration_ms": N}
+  {"type": "done",             "issue_count": N, "duration_ms": N, "parse_failures": [...]}
   {"type": "error",            "message": "..."}
 """
 
@@ -58,6 +58,7 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                 "language": language,
                 "rag_context": rag_context,
                 "issues": [],
+                "parse_failures": [],
                 "report_text": "",
                 "error": None,
             }
@@ -108,6 +109,11 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
             report_text: str = final_state.get("report_text", "")
             duration_ms = int((time.monotonic() - started_at) * 1000)
 
+            # 某个 Agent 的 JSON 解析失败 → 整类问题被吞掉，必须发信号而非静默漏报
+            parse_failures: list[str] = final_state.get("parse_failures", [])
+            if parse_failures:
+                log.warning("agent_parse_failures", failures=parse_failures)
+
             review.status = ReviewStatus.done
             review.report_text = report_text
             review.total_issues = len(issues)
@@ -129,6 +135,7 @@ async def run_review_task(ctx: dict, review_id: str, source_code: str, language:
                 "type": "done",
                 "issue_count": len(issues),
                 "duration_ms": duration_ms,
+                "parse_failures": parse_failures,
             }))
             log.info("review_done", review_id=review_id, issues=len(issues), ms=duration_ms)
 
