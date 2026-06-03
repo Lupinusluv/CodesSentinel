@@ -116,3 +116,20 @@
 
 > 结论：补完第一批（4 个 P1，预计都是小改动）后，③ 可从"70 分targeted"实质上到 **82–85**；
 > 第二批补完接近 88。没有发现需要返工的架构性错误，主要是"末端收尾"和"一致性"层面的债。
+
+---
+
+## 5. 落地状态（动态维护）
+
+- **v0.5.3**：P1 全清（M1 parse_failures 警告 / M2 平台收口 / M3 onclose / M4 兜底）+ L2 list 瘦身
+  + ruff 入 CI（含 L3 的 import 顺序由机器保证）。CI 绿。
+- **v0.5.4（V5 收尾）**：第二批 P2 落地——
+  - L1 metrics 分布查询加 `status==done` 过滤（口径与 headline 对齐）✅
+  - L3 删除未使用的 `/metrics/issues` 死端点 ✅
+  - L4 gitlab/gitee 空文件 → roadmap 骨架（抛 NotImplementedError）✅
+  - L5 `run_eval.py` 的 ReviewState 补 `parse_failures` 键 ✅
+- **记录不改（MVP 局限/已决策）**：L6 串行 embedding、L7 检索粒度。
+- **转 V6**：AutoFix「一键修复并提交分支 / 开 PR」——非小扩展，需先解决 webhook 模式
+  存 diff 而非整文件、file_path 端到端、写权限策略；走独立 brainstorm→spec→实现。
+
+至此 ③ 审计线的可做项清零，实质分约 **88**。

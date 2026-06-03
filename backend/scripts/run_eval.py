@@ -179,6 +179,7 @@ async def run_multi_agent(sample: dict) -> list[dict]:
         "language": sample["language"],
         "rag_context": "",  # no DB during eval
         "issues": [],
+        "parse_failures": [],  # 与 review_task 的初始 state 对齐（B5 新增字段）
         "report_text": "",
         "error": None,
     }

@@ -30,12 +30,15 @@ async def metrics_summary(db: DBSessionDep) -> MetricsSummary:
         )
     ).one()
 
-    # Per-category × per-severity distribution
+    # Per-category × per-severity distribution.
+    # 与上面的 headline 口径一致：只统计 done 的 review（join + where），
+    # 否则分布与 total_issues 可能分叉。
     dist_rows = (
         await db.execute(
-            select(Issue.category, Issue.severity, func.count(Issue.id)).group_by(
-                Issue.category, Issue.severity
-            )
+            select(Issue.category, Issue.severity, func.count(Issue.id))
+            .join(Review, Issue.review_id == Review.id)
+            .where(Review.status == ReviewStatus.done)
+            .group_by(Issue.category, Issue.severity)
         )
     ).all()
 
@@ -54,21 +57,3 @@ async def metrics_summary(db: DBSessionDep) -> MetricsSummary:
         issues_by_category=issues_by_category,
         issues_by_severity=issues_by_severity,
     )
-
-
-@router.get("/issues")
-async def issues_distribution(db: DBSessionDep) -> dict[str, dict[str, int]]:
-    rows = (
-        await db.execute(
-            select(Issue.category, Issue.severity, func.count(Issue.id)).group_by(
-                Issue.category, Issue.severity
-            )
-        )
-    ).all()
-
-    result: dict[str, dict[str, int]] = {}
-    for cat, sev, cnt in rows:
-        cat_key = cat.value if hasattr(cat, "value") else str(cat)
-        sev_key = sev.value if hasattr(sev, "value") else str(sev)
-        result.setdefault(cat_key, {})[sev_key] = cnt
-    return result
